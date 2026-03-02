@@ -210,7 +210,7 @@
   .card {
     position: relative;
     width: 100%;
-    min-height: 320px;
+    height: 320px;
     transform-style: preserve-3d;
     transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
   }
@@ -220,13 +220,14 @@
   .card-face {
     position: absolute;
     width: 100%;
-    min-height: 320px;
+    height: 320px;
     backface-visibility: hidden;
     border-radius: 20px;
     padding: 40px;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    overflow-y: auto;
   }
 
   .card-front {
@@ -586,7 +587,10 @@
         <span>Bioquímica · Medicina</span>
       </div>
     </div>
-    <div class="topic-badge">Proteínas & Aminoácidos</div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <a href="index.html" style="font-size:0.82rem;color:var(--muted);text-decoration:none;border:1px solid rgba(255,255,255,0.1);padding:0.4rem 0.9rem;border-radius:8px;transition:all 0.2s;font-family:'DM Sans',sans-serif;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='var(--muted)'">← Volver a temas</a>
+      <div class="topic-badge">Proteínas & Aminoácidos</div>
+    </div>
   </header>
 
   <div id="main-view">
@@ -690,9 +694,11 @@
 
   <!-- Completion screen -->
   <div class="completion" id="completion-screen">
-    <div class="completion-emoji">🎉</div>
+    <div class="completion-emoji" id="result-emoji">🎉</div>
     <div class="completion-title">¡Mazo completado!</div>
-    <div class="completion-sub">Terminaste de repasar todas las flashcards</div>
+    <div class="completion-sub" id="result-mensaje">Terminaste de repasar todas las flashcards</div>
+
+    <!-- Resultado actual -->
     <div class="completion-stats">
       <div class="stat-box stat-green">
         <div class="stat-num" id="final-good">0</div>
@@ -707,7 +713,16 @@
         <div class="stat-label">No sabía</div>
       </div>
     </div>
-    <button class="btn btn-restart" onclick="restartDeck()">↺ Reiniciar mazo</button>
+
+    <!-- Comparación con intento anterior -->
+    <div id="comparacion" style="display:none;margin:16px 0;padding:14px 20px;background:rgba(255,255,255,0.04);border-radius:12px;font-size:0.85rem;color:#888;text-align:center;">
+      Intento anterior: <span id="pct-anterior" style="color:#ccc;font-weight:600;"></span> → Este intento: <span id="pct-actual" style="color:#00d4ff;font-weight:600;"></span>
+    </div>
+
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:8px;">
+      <button class="btn btn-restart" onclick="restartDeck()">↺ Reintentar</button>
+      <a href="index.html" style="display:inline-flex;align-items:center;padding:0 20px;height:44px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);color:#aaa;font-family:'DM Sans',sans-serif;font-size:0.9rem;text-decoration:none;">← Volver a temas</a>
+    </div>
   </div>
 
 </div>
@@ -1017,6 +1032,37 @@ function showCompletion() {
   document.getElementById('final-good').textContent = scores.good;
   document.getElementById('final-ok').textContent = scores.ok;
   document.getElementById('final-bad').textContent = scores.bad;
+
+  // Enviar progreso al script si hay usuario logueado
+  const mail = localStorage.getItem('melbako_user');
+  if (mail) {
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzlYbSVscgP_lF5KzfsUcCT063DixFTfn5-0mgZvAxVoQm7qiKESlc8eKDn0Vz8agj8/exec";
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        accion: 'progreso',
+        mail: mail,
+        tema: 'proteinas-aminoacidos',
+        good: scores.good,
+        ok: scores.ok,
+        bad: scores.bad
+      })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok) {
+        document.getElementById('result-emoji').textContent = data.emoji;
+        document.getElementById('result-mensaje').textContent = data.mensaje;
+        if (data.anterior) {
+          document.getElementById('comparacion').style.display = 'block';
+          document.getElementById('pct-anterior').textContent = data.anterior.pct + '%';
+          document.getElementById('pct-actual').textContent = data.pct + '%';
+        }
+      }
+    })
+    .catch(() => {}); // Si falla el envío, no rompe la pantalla
+  }
+}
 }
 
 function restartDeck() {
