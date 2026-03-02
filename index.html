@@ -1,233 +1,533 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Melbako · Dashboard de Estudio</title>
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg: #0a0e1a;
-            --surface: #111827;
-            --surface2: #1a2235;
-            --border: #1e3a5f;
-            --accent: #00d4ff;
-            --accent2: #7c3aed;
-            --text: #e2e8f0;
-            --muted: #64748b;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Melbako · Flashcards</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #13131a;
+      --border: #1e1e2e;
+      --cyan: #00e5ff;
+      --purple: #9b5de5;
+      --text: #e8e8f0;
+      --muted: #6b6b80;
+      --error: #ff4d6d;
+      --success: #00e5a0;
+    }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: 'DM Sans', sans-serif;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+    }
 
-        /* Fondo con grilla igual al de las flashcards */
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background-image: 
-                linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
-            background-size: 40px 40px;
-            pointer-events: none;
-            z-index: 0;
-        }
+    /* Background mesh */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: 
+        radial-gradient(ellipse 60% 50% at 20% 20%, rgba(0,229,255,0.07) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 60% at 80% 80%, rgba(155,93,229,0.07) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
 
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 40px 20px;
-            position: relative;
-            z-index: 1;
-        }
+    /* ─── AUTH SCREEN ─── */
+    #auth-screen {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 420px;
+      padding: 2rem;
+    }
 
-        header {
-            margin-bottom: 60px;
-            text-align: center;
-        }
+    .logo {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
 
-        .logo {
-            display: inline-flex;
-            align-items: center;
-            gap: 16px;
-            margin-bottom: 24px;
-        }
+    .logo-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.02em;
+    }
 
-        .logo-mark {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, var(--accent), var(--accent2));
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Syne', sans-serif;
-            font-weight: 800;
-            font-size: 18px;
-            color: white;
-        }
+    .logo-sub {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: 0.3rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
 
-        .logo-text {
-            font-family: 'Syne', sans-serif;
-            font-weight: 700;
-            font-size: 24px;
-            color: white;
-            text-align: left;
-        }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+    }
 
-        .logo-text span {
-            display: block;
-            font-size: 12px;
-            font-weight: 400;
-            color: var(--muted);
-            font-family: 'DM Mono', monospace;
-            text-transform: uppercase;
-        }
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.8rem;
+      background: var(--bg);
+      border-radius: 10px;
+      padding: 4px;
+    }
 
-        h1 {
-            font-family: 'Syne', sans-serif;
-            font-size: clamp(24px, 5vw, 42px);
-            font-weight: 800;
-            margin-bottom: 16px;
-            background: linear-gradient(to right, #fff, var(--muted));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+    .tab {
+      flex: 1;
+      padding: 0.6rem;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-family: 'Syne', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
 
-        .subtitle {
-            color: var(--muted);
-            font-size: 18px;
-            max-width: 600px;
-            margin: 0 auto;
-        }
+    .tab.active {
+      background: var(--border);
+      color: var(--text);
+    }
 
-        /* Grid de Módulos */
-        .modules-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 24px;
-        }
+    .form-group {
+      margin-bottom: 1.2rem;
+    }
 
-        .module-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 32px;
-            text-decoration: none;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-        }
+    label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
 
-        .module-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--accent);
-            background: var(--surface2);
-        }
+    input {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      transition: border-color 0.2s;
+      outline: none;
+    }
 
-        .module-card::after {
-            content: '→';
-            position: absolute;
-            bottom: 32px;
-            right: 32px;
-            font-size: 20px;
-            color: var(--accent);
-            opacity: 0;
-            transition: 0.3s;
-        }
+    input:focus {
+      border-color: var(--cyan);
+    }
 
-        .module-card:hover::after {
-            opacity: 1;
-            right: 24px;
-        }
+    .btn-primary {
+      width: 100%;
+      padding: 0.9rem;
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      border: none;
+      border-radius: 10px;
+      color: #000;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      transition: opacity 0.2s, transform 0.1s;
+      letter-spacing: 0.02em;
+    }
 
-        .module-tag {
-            font-family: 'DM Mono', monospace;
-            font-size: 11px;
-            color: var(--accent);
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            margin-bottom: 12px;
-            display: block;
-        }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        .module-title {
-            font-family: 'Syne', sans-serif;
-            font-size: 22px;
-            font-weight: 700;
-            color: white;
-            margin-bottom: 12px;
-        }
+    .msg {
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      display: none;
+    }
 
-        .module-desc {
-            font-size: 14px;
-            color: var(--muted);
-            line-height: 1.6;
-        }
+    .msg.error { background: rgba(255,77,109,0.1); color: var(--error); border: 1px solid rgba(255,77,109,0.2); display: block; }
+    .msg.success { background: rgba(0,229,160,0.1); color: var(--success); border: 1px solid rgba(0,229,160,0.2); display: block; }
 
-        /* Badge de "Próximamente" */
-        .coming-soon {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        .coming-soon:hover { transform: none; border-color: var(--border); }
-        .badge {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255,255,255,0.05);
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 9px;
-            font-family: 'DM Mono', monospace;
-            color: var(--muted);
-        }
-    </style>
+    /* ─── DASHBOARD ─── */
+    #dashboard {
+      display: none;
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 900px;
+      padding: 2rem;
+      min-height: 100vh;
+    }
+
+    .dash-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 3rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .dash-logo {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .dash-user {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .dash-email {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .btn-logout {
+      padding: 0.45rem 1rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-logout:hover {
+      border-color: var(--error);
+      color: var(--error);
+    }
+
+    .dash-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+    }
+
+    .dash-subtitle {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .flashcards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.2rem;
+    }
+
+    .fc-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.5rem;
+      cursor: pointer;
+      transition: all 0.25s;
+      text-decoration: none;
+      display: block;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .fc-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(0,229,255,0.05), rgba(155,93,229,0.05));
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+
+    .fc-card:hover {
+      border-color: var(--cyan);
+      transform: translateY(-3px);
+    }
+
+    .fc-card:hover::before { opacity: 1; }
+
+    .fc-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .fc-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.4rem;
+    }
+
+    .fc-desc {
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .fc-badge {
+      display: inline-block;
+      margin-top: 1rem;
+      padding: 0.25rem 0.7rem;
+      background: rgba(0,229,255,0.08);
+      border: 1px solid rgba(0,229,255,0.2);
+      border-radius: 20px;
+      font-size: 0.75rem;
+      color: var(--cyan);
+      font-weight: 500;
+    }
+
+    .coming-soon {
+      opacity: 0.4;
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .coming-soon .fc-badge {
+      background: rgba(107,107,128,0.1);
+      border-color: rgba(107,107,128,0.2);
+      color: var(--muted);
+    }
+
+    /* Animaciones */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    #auth-screen, #dashboard {
+      animation: fadeIn 0.4s ease both;
+    }
+  </style>
 </head>
 <body>
 
-<div class="container">
-    <header>
-        <div class="logo">
-            <div class="logo-mark">MB</div>
-            <div class="logo-text">
-                Melbako
-                <span>Bioquímica · Medicina</span>
-            </div>
-        </div>
-        <h1>Dashboard de Estudio</h1>
-        <p class="subtitle">Seleccioná una unidad para comenzar a repasar con flashcards interactivas.</p>
-    </header>
-
-    <div class="modules-grid">
-        <a href="melbako-flashcards-proteinas.html" class="module-card">
-            <span class="module-tag">Unidad 1</span>
-            <h2 class="module-title">Proteínas & Aminoácidos</h2>
-            <p class="module-desc">Estructura, propiedades ácido-base, enlace peptídico y técnicas de laboratorio.</p>
-        </a>
-
-        <div class="module-card coming-soon">
-            <span class="badge">PRÓXIMAMENTE</span>
-            <span class="module-tag">Unidad 2</span>
-            <h2 class="module-title">Enzimas</h2>
-            <p class="module-desc">Cinética enzimática, inhibición y regulación de la actividad biológica.</p>
-        </div>
-
-        <div class="module-card coming-soon">
-            <span class="badge">PRÓXIMAMENTE</span>
-            <span class="module-tag">Unidad 3</span>
-            <h2 class="module-title">Hidratos de Carbono</h2>
-            <p class="module-desc">Estructura de monosacáridos, disacáridos y polisacáridos de importancia médica.</p>
-        </div>
+  <!-- ─── AUTH ─── -->
+  <div id="auth-screen">
+    <div class="logo">
+      <div class="logo-title">Melbako</div>
+      <div class="logo-sub">Flashcards · Bioquímica</div>
     </div>
-</div>
 
+    <div class="card">
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('login')">Ingresar</button>
+        <button class="tab" onclick="switchTab('registro')">Registrarse</button>
+      </div>
+
+      <div id="form-login">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="login-mail" placeholder="tu@mail.com">
+        </div>
+        <div class="form-group">
+          <label>Contraseña</label>
+          <input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()">
+        </div>
+        <button class="btn-primary" onclick="doLogin()" id="btn-login">Ingresar →</button>
+        <div class="msg" id="msg-login"></div>
+      </div>
+
+      <div id="form-registro" style="display:none">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="reg-mail" placeholder="tu@mail.com">
+        </div>
+        <div class="form-group">
+          <label>Contraseña</label>
+          <input type="password" id="reg-pass" placeholder="Elegí una contraseña" onkeydown="if(event.key==='Enter') doRegistro()">
+        </div>
+        <button class="btn-primary" onclick="doRegistro()" id="btn-reg">Crear cuenta →</button>
+        <div class="msg" id="msg-reg"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── DASHBOARD ─── -->
+  <div id="dashboard">
+    <div class="dash-header">
+      <div class="dash-logo">Melbako</div>
+      <div class="dash-user">
+        <span class="dash-email" id="user-email"></span>
+        <button class="btn-logout" onclick="logout()">Salir</button>
+      </div>
+    </div>
+
+    <div class="dash-title">Tus flashcards 🧬</div>
+    <div class="dash-subtitle">Seleccioná un tema para repasar</div>
+
+    <div class="flashcards-grid">
+      <a class="fc-card" href="melbako-flashcards-proteinas.html">
+        <div class="fc-icon">🧪</div>
+        <div class="fc-title">Proteínas y Aminoácidos</div>
+        <div class="fc-desc">Estructura, propiedades ácido-base, enlace peptídico y niveles estructurales</div>
+        <span class="fc-badge">28 tarjetas</span>
+      </a>
+
+      <div class="fc-card coming-soon">
+        <div class="fc-icon">🧬</div>
+        <div class="fc-title">Lípidos</div>
+        <div class="fc-desc">Clasificación, estructura y función de lípidos en el organismo</div>
+        <span class="fc-badge">Próximamente</span>
+      </div>
+
+      <div class="fc-card coming-soon">
+        <div class="fc-icon">🍬</div>
+        <div class="fc-title">Carbohidratos</div>
+        <div class="fc-desc">Monosacáridos, disacáridos, polisacáridos y metabolismo glucídico</div>
+        <span class="fc-badge">Próximamente</span>
+      </div>
+
+      <div class="fc-card coming-soon">
+        <div class="fc-icon">⚡</div>
+        <div class="fc-title">Enzimas</div>
+        <div class="fc-desc">Cinética enzimática, inhibición y regulación</div>
+        <span class="fc-badge">Próximamente</span>
+      </div>
+
+      <div class="fc-card coming-soon">
+        <div class="fc-icon">🔋</div>
+        <div class="fc-title">Metabolismo energético</div>
+        <div class="fc-desc">Glucólisis, ciclo de Krebs y cadena respiratoria</div>
+        <span class="fc-badge">Próximamente</span>
+      </div>
+
+      <div class="fc-card coming-soon">
+        <div class="fc-icon">🧫</div>
+        <div class="fc-title">Biología molecular</div>
+        <div class="fc-desc">ADN, ARN, replicación, transcripción y traducción</div>
+        <span class="fc-badge">Próximamente</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzlYbSVscgP_lF5KzfsUcCT063DixFTfn5-0mgZvAxVoQm7qiKESlc8eKDn0Vz8agj8/exec";
+
+    // ─── Tabs ───
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.getElementById('form-login').style.display = tab === 'login' ? 'block' : 'none';
+      document.getElementById('form-registro').style.display = tab === 'registro' ? 'block' : 'none';
+      event.target.classList.add('active');
+    }
+
+    // ─── Login ───
+    async function doLogin() {
+      const mail = document.getElementById('login-mail').value.trim();
+      const pass = document.getElementById('login-pass').value;
+      const msg = document.getElementById('msg-login');
+      const btn = document.getElementById('btn-login');
+
+      if (!mail || !pass) { showMsg(msg, 'Completá todos los campos', 'error'); return; }
+
+      btn.disabled = true;
+      btn.textContent = 'Verificando...';
+
+      try {
+        const res = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({ accion: 'login', mail, pass })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          localStorage.setItem('melbako_user', mail);
+          mostrarDashboard(mail);
+        } else {
+          showMsg(msg, data.msg, 'error');
+        }
+      } catch (e) {
+        showMsg(msg, 'Error de conexión. Intentá de nuevo.', 'error');
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Ingresar →';
+    }
+
+    // ─── Registro ───
+    async function doRegistro() {
+      const mail = document.getElementById('reg-mail').value.trim();
+      const pass = document.getElementById('reg-pass').value;
+      const msg = document.getElementById('msg-reg');
+      const btn = document.getElementById('btn-reg');
+
+      if (!mail || !pass) { showMsg(msg, 'Completá todos los campos', 'error'); return; }
+      if (pass.length < 6) { showMsg(msg, 'La contraseña debe tener al menos 6 caracteres', 'error'); return; }
+
+      btn.disabled = true;
+      btn.textContent = 'Creando cuenta...';
+
+      try {
+        const res = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({ accion: 'registrar', mail, pass })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          showMsg(msg, '¡Cuenta creada! Ya podés ingresar 🎉', 'success');
+          setTimeout(() => switchTab('login'), 1500);
+        } else {
+          showMsg(msg, data.msg, 'error');
+        }
+      } catch (e) {
+        showMsg(msg, 'Error de conexión. Intentá de nuevo.', 'error');
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Crear cuenta →';
+    }
+
+    // ─── Dashboard ───
+    function mostrarDashboard(email) {
+      document.getElementById('auth-screen').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      document.getElementById('user-email').textContent = email;
+    }
+
+    function logout() {
+      localStorage.removeItem('melbako_user');
+      document.getElementById('auth-screen').style.display = 'flex';
+      document.getElementById('dashboard').style.display = 'none';
+    }
+
+    function showMsg(el, text, type) {
+      el.textContent = text;
+      el.className = 'msg ' + type;
+    }
+
+    // ─── Auto-login si ya estaba logueado ───
+    const savedUser = localStorage.getItem('melbako_user');
+    if (savedUser) mostrarDashboard(savedUser);
+  </script>
 </body>
 </html>
