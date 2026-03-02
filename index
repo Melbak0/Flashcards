@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Melbako · Dashboard de Estudio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0e1a;
+            --surface: #111827;
+            --surface2: #1a2235;
+            --border: #1e3a5f;
+            --accent: #00d4ff;
+            --accent2: #7c3aed;
+            --text: #e2e8f0;
+            --muted: #64748b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Fondo con grilla igual al de las flashcards */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            margin-bottom: 60px;
+            text-align: center;
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .logo-mark {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 18px;
+            color: white;
+        }
+
+        .logo-text {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 24px;
+            color: white;
+            text-align: left;
+        }
+
+        .logo-text span {
+            display: block;
+            font-size: 12px;
+            font-weight: 400;
+            color: var(--muted);
+            font-family: 'DM Mono', monospace;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(24px, 5vw, 42px);
+            font-weight: 800;
+            margin-bottom: 16px;
+            background: linear-gradient(to right, #fff, var(--muted));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            font-size: 18px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Grid de Módulos */
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .module-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .module-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+            background: var(--surface2);
+        }
+
+        .module-card::after {
+            content: '→';
+            position: absolute;
+            bottom: 32px;
+            right: 32px;
+            font-size: 20px;
+            color: var(--accent);
+            opacity: 0;
+            transition: 0.3s;
+        }
+
+        .module-card:hover::after {
+            opacity: 1;
+            right: 24px;
+        }
+
+        .module-tag {
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .module-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 12px;
+        }
+
+        .module-desc {
+            font-size: 14px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        /* Badge de "Próximamente" */
+        .coming-soon {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .coming-soon:hover { transform: none; border-color: var(--border); }
+        .badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.05);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-family: 'DM Mono', monospace;
+            color: var(--muted);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div class="logo">
+            <div class="logo-mark">MB</div>
+            <div class="logo-text">
+                Melbako
+                <span>Bioquímica · Medicina</span>
+            </div>
+        </div>
+        <h1>Dashboard de Estudio</h1>
+        <p class="subtitle">Seleccioná una unidad para comenzar a repasar con flashcards interactivas.</p>
+    </header>
+
+    <div class="modules-grid">
+        <a href="melbako-flashcards-proteinas.html" class="module-card">
+            <span class="module-tag">Unidad 1</span>
+            <h2 class="module-title">Proteínas & Aminoácidos</h2>
+            <p class="module-desc">Estructura, propiedades ácido-base, enlace peptídico y técnicas de laboratorio.</p>
+        </a>
+
+        <div class="module-card coming-soon">
+            <span class="badge">PRÓXIMAMENTE</span>
+            <span class="module-tag">Unidad 2</span>
+            <h2 class="module-title">Enzimas</h2>
+            <p class="module-desc">Cinética enzimática, inhibición y regulación de la actividad biológica.</p>
+        </div>
+
+        <div class="module-card coming-soon">
+            <span class="badge">PRÓXIMAMENTE</span>
+            <span class="module-tag">Unidad 3</span>
+            <h2 class="module-title">Hidratos de Carbono</h2>
+            <p class="module-desc">Estructura de monosacáridos, disacáridos y polisacáridos de importancia médica.</p>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
