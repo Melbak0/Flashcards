@@ -202,33 +202,26 @@
 
   /* Card area */
   .card-area {
-    perspective: 1200px;
     margin-bottom: 28px;
     cursor: pointer;
-    height: 320px;
   }
 
   .card {
-    position: relative;
     width: 100%;
-    height: 320px;
-    transform-style: preserve-3d;
-    transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 320px;
   }
 
-  .card.flipped { transform: rotateY(180deg); }
-
   .card-face {
-    position: absolute;
-    width: 100%;
-    height: 320px;
-    backface-visibility: hidden;
-    border-radius: 20px;
-    padding: 40px;
-    display: flex;
+    display: none;
     flex-direction: column;
     justify-content: center;
-    overflow-y: auto;
+    border-radius: 24px;
+    padding: 48px 52px;
+    min-height: 320px;
+  }
+
+  .card-face.active {
+    display: flex;
   }
 
   .card-front {
@@ -252,8 +245,6 @@
   .card-back {
     background: var(--card-back);
     border: 1px solid rgba(16,185,129,0.3);
-    transform: rotateY(180deg);
-    position: relative;
     overflow: hidden;
   }
 
@@ -643,7 +634,7 @@
     <div class="flip-hint">↓ Hacé click para ver la respuesta</div>
     <div class="card-area" onclick="flipCard()" id="card-area">
       <div class="card" id="card">
-        <div class="card-face card-front" id="card-front">
+        <div class="card-face card-front active" id="card-front">
           <div class="card-category" id="card-category">Estructura</div>
           <div class="diff-tag" id="diff-tag">fácil</div>
           <div class="card-question" id="card-question">¿Qué es un aminoácido?</div>
@@ -920,7 +911,8 @@ function renderCard() {
   
   // Reset flip
   isFlipped = false;
-  cardEl.classList.remove('flipped');
+  document.getElementById('card-front').classList.add('active');
+  document.getElementById('card-back').classList.remove('active');
   document.getElementById('answer-actions').classList.remove('visible');
   document.getElementById('flip-btn').style.display = '';
 
@@ -962,7 +954,8 @@ function renderCard() {
 
 function flipCard() {
   if (!isFlipped) {
-    document.getElementById('card').classList.add('flipped');
+    document.getElementById('card-front').classList.remove('active');
+    document.getElementById('card-back').classList.add('active');
     document.getElementById('answer-actions').classList.add('visible');
     document.getElementById('flip-btn').style.display = 'none';
     isFlipped = true;
