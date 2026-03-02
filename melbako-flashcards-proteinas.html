@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Melbako · Proteínas & Aminoácidos</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e3a5f;
+    --accent: #00d4ff;
+    --accent2: #7c3aed;
+    --green: #10b981;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --card-front: #0f1c2e;
+    --card-back: #0d1f1a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  header {
+    padding: 32px 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-mark {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    color: white;
+    letter-spacing: -0.5px;
+  }
+
+  .logo-text {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: white;
+    line-height: 1.1;
+  }
+
+  .logo-text span {
+    display: block;
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .topic-badge {
+    background: rgba(0,212,255,0.1);
+    border: 1px solid rgba(0,212,255,0.25);
+    color: var(--accent);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.05em;
+  }
+
+  /* Filter tabs */
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .filter-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .filter-btn.active {
+    background: rgba(0,212,255,0.12);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* Progress bar */
+  .progress-section {
+    margin-bottom: 32px;
+  }
+
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .progress-label {
+    font-size: 13px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .progress-count {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    color: white;
+  }
+
+  .progress-count span { color: var(--muted); font-size: 15px; }
+
+  .progress-track {
+    height: 4px;
+    background: var(--surface2);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  .score-row {
+    display: flex;
+    gap: 16px;
+    margin-top: 12px;
+  }
+
+  .score-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot.green { background: var(--green); }
+  .dot.red { background: var(--red); }
+  .dot.yellow { background: var(--yellow); }
+
+  /* Card area */
+  .card-area {
+    perspective: 1200px;
+    margin-bottom: 28px;
+    cursor: pointer;
+  }
+
+  .card {
+    position: relative;
+    width: 100%;
+    min-height: 320px;
+    transform-style: preserve-3d;
+    transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card.flipped { transform: rotateY(180deg); }
+
+  .card-face {
+    position: absolute;
+    width: 100%;
+    min-height: 320px;
+    backface-visibility: hidden;
+    border-radius: 20px;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .card-front {
+    background: var(--card-front);
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card-front::before {
+    content: '';
+    position: absolute;
+    top: -60px;
+    right: -60px;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(0,212,255,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .card-back {
+    background: var(--card-back);
+    border: 1px solid rgba(16,185,129,0.3);
+    transform: rotateY(180deg);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card-back::before {
+    content: '';
+    position: absolute;
+    bottom: -60px;
+    left: -60px;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(16,185,129,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .card-category {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-category::before {
+    content: '';
+    width: 20px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  .card-back .card-category { color: var(--green); }
+  .card-back .card-category::before { background: var(--green); }
+
+  .card-question {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: clamp(18px, 3vw, 24px);
+    line-height: 1.4;
+    color: white;
+    margin-bottom: 20px;
+  }
+
+  .card-hint {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .card-hint svg { opacity: 0.5; }
+
+  .card-answer {
+    font-size: 16px;
+    line-height: 1.7;
+    color: #c8e6c9;
+    margin-bottom: 16px;
+  }
+
+  .card-answer strong { color: var(--green); }
+
+  .clinical-note {
+    background: rgba(245,158,11,0.08);
+    border: 1px solid rgba(245,158,11,0.2);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #fcd34d;
+    margin-top: 16px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .clinical-note-icon { flex-shrink: 0; margin-top: 1px; }
+
+  /* Action buttons */
+  .action-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 13px 28px;
+    border-radius: 12px;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-ghost {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+
+  .btn-ghost:hover { border-color: var(--muted); color: var(--text); }
+
+  .btn-bad {
+    background: rgba(239,68,68,0.12);
+    border: 1px solid rgba(239,68,68,0.3);
+    color: #fca5a5;
+  }
+  .btn-bad:hover { background: rgba(239,68,68,0.2); }
+
+  .btn-ok {
+    background: rgba(245,158,11,0.12);
+    border: 1px solid rgba(245,158,11,0.3);
+    color: #fcd34d;
+  }
+  .btn-ok:hover { background: rgba(245,158,11,0.2); }
+
+  .btn-good {
+    background: rgba(16,185,129,0.12);
+    border: 1px solid rgba(16,185,129,0.3);
+    color: #6ee7b7;
+  }
+  .btn-good:hover { background: rgba(16,185,129,0.2); }
+
+  .answer-actions {
+    display: none;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .answer-actions.visible { display: flex; }
+
+  /* Nav row */
+  .nav-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+
+  .nav-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    font-size: 18px;
+  }
+
+  .nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .nav-index {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    min-width: 80px;
+    text-align: center;
+  }
+
+  /* Shuffle btn */
+  .shuffle-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 auto 40px;
+    padding: 10px 20px;
+    background: transparent;
+    border: 1px dashed var(--border);
+    color: var(--muted);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+  }
+
+  .shuffle-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  /* Completion screen */
+  .completion {
+    display: none;
+    text-align: center;
+    padding: 60px 20px;
+  }
+
+  .completion.visible { display: block; }
+
+  .completion-emoji { font-size: 64px; margin-bottom: 24px; }
+
+  .completion-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 32px;
+    color: white;
+    margin-bottom: 12px;
+  }
+
+  .completion-sub {
+    color: var(--muted);
+    font-size: 16px;
+    margin-bottom: 40px;
+  }
+
+  .completion-stats {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+  }
+
+  .stat-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px 28px;
+    min-width: 120px;
+  }
+
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 36px;
+  }
+
+  .stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .stat-green .stat-num { color: var(--green); }
+  .stat-yellow .stat-num { color: var(--yellow); }
+  .stat-red .stat-num { color: var(--red); }
+
+  .btn-restart {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: white;
+    font-weight: 600;
+  }
+
+  .btn-restart:hover { opacity: 0.9; transform: translateY(-1px); }
+
+  /* Difficulty tag */
+  .diff-tag {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    letter-spacing: 0.08em;
+  }
+
+  .diff-tag.easy { background: rgba(16,185,129,0.15); color: var(--green); }
+  .diff-tag.medium { background: rgba(245,158,11,0.15); color: var(--yellow); }
+  .diff-tag.hard { background: rgba(239,68,68,0.15); color: #fca5a5; }
+
+  /* Deck info */
+  .deck-info {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+
+  .deck-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .deck-stat-num {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    color: white;
+  }
+
+  .deck-stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .divider { width: 1px; background: var(--border); height: 36px; }
+
+  /* Animations */
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-area { animation: cardIn 0.3s ease; }
+
+  .flip-hint {
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 16px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.05em;
+  }
+
+  /* Main view toggle */
+  #main-view { display: block; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="logo">
+      <div class="logo-mark">MB</div>
+      <div class="logo-text">
+        Melbako
+        <span>Bioquímica · Medicina</span>
+      </div>
+    </div>
+    <div class="topic-badge">Proteínas & Aminoácidos</div>
+  </header>
+
+  <div id="main-view">
+    <!-- Deck info -->
+    <div class="deck-info">
+      <div class="deck-stat">
+        <div class="deck-stat-num" id="total-count">28</div>
+        <div class="deck-stat-label">Flashcards</div>
+      </div>
+      <div class="divider"></div>
+      <div class="deck-stat">
+        <div class="deck-stat-num">6</div>
+        <div class="deck-stat-label">Temas</div>
+      </div>
+      <div class="divider"></div>
+      <div class="deck-stat">
+        <div class="deck-stat-num" id="remaining-count">28</div>
+        <div class="deck-stat-label">Restantes</div>
+      </div>
+    </div>
+
+    <!-- Filter bar -->
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterCards('all', this)">Todas</button>
+      <button class="filter-btn" onclick="filterCards('estructura', this)">Estructura AA</button>
+      <button class="filter-btn" onclick="filterCards('acido-base', this)">Ácido-Base</button>
+      <button class="filter-btn" onclick="filterCards('peptidico', this)">Enlace Peptídico</button>
+      <button class="filter-btn" onclick="filterCards('proteinas', this)">Proteínas</button>
+      <button class="filter-btn" onclick="filterCards('tecnicas', this)">Técnicas</button>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-section">
+      <div class="progress-header">
+        <div class="progress-label">PROGRESO DE REPASO</div>
+        <div class="progress-count"><span id="current-num">1</span> <span>/ <span id="total-num">28</span></span></div>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill" style="width: 3.6%"></div>
+      </div>
+      <div class="score-row">
+        <div class="score-pill"><div class="dot green"></div><span id="score-good">0</span> sabía</div>
+        <div class="score-pill"><div class="dot yellow"></div><span id="score-ok">0</span> más o menos</div>
+        <div class="score-pill"><div class="dot red"></div><span id="score-bad">0</span> no sabía</div>
+      </div>
+    </div>
+
+    <!-- Card -->
+    <div class="flip-hint">↓ Hacé click para ver la respuesta</div>
+    <div class="card-area" onclick="flipCard()" id="card-area">
+      <div class="card" id="card">
+        <div class="card-face card-front" id="card-front">
+          <div class="card-category" id="card-category">Estructura</div>
+          <div class="diff-tag" id="diff-tag">fácil</div>
+          <div class="card-question" id="card-question">¿Qué es un aminoácido?</div>
+          <div class="card-hint">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            Click para revelar
+          </div>
+        </div>
+        <div class="card-face card-back" id="card-back">
+          <div class="card-category">Respuesta</div>
+          <div class="card-answer" id="card-answer"></div>
+          <div class="clinical-note" id="clinical-note" style="display:none">
+            <span class="clinical-note-icon">⚕️</span>
+            <span id="clinical-text"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Answer buttons (appear after flip) -->
+    <div class="action-row">
+      <button class="btn btn-ghost" onclick="flipCard()" id="flip-btn">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
+        Ver respuesta
+      </button>
+      <div class="answer-actions" id="answer-actions">
+        <button class="btn btn-bad" onclick="markCard('bad')">😅 No sabía</button>
+        <button class="btn btn-ok" onclick="markCard('ok')">🤔 Más o menos</button>
+        <button class="btn btn-good" onclick="markCard('good')">✅ Lo sabía</button>
+      </div>
+    </div>
+
+    <!-- Nav -->
+    <div class="nav-row">
+      <button class="nav-btn" onclick="prevCard()" id="prev-btn">←</button>
+      <div class="nav-index" id="nav-index">1 / 28</div>
+      <button class="nav-btn" onclick="nextCard()" id="next-btn">→</button>
+    </div>
+
+    <!-- Shuffle -->
+    <button class="shuffle-btn" onclick="shuffleCards()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/>
+        <polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/>
+      </svg>
+      Mezclar cartas
+    </button>
+  </div>
+
+  <!-- Completion screen -->
+  <div class="completion" id="completion-screen">
+    <div class="completion-emoji">🎉</div>
+    <div class="completion-title">¡Mazo completado!</div>
+    <div class="completion-sub">Terminaste de repasar todas las flashcards</div>
+    <div class="completion-stats">
+      <div class="stat-box stat-green">
+        <div class="stat-num" id="final-good">0</div>
+        <div class="stat-label">Lo sabía</div>
+      </div>
+      <div class="stat-box stat-yellow">
+        <div class="stat-num" id="final-ok">0</div>
+        <div class="stat-label">Más o menos</div>
+      </div>
+      <div class="stat-box stat-red">
+        <div class="stat-num" id="final-bad">0</div>
+        <div class="stat-label">No sabía</div>
+      </div>
+    </div>
+    <button class="btn btn-restart" onclick="restartDeck()">↺ Reiniciar mazo</button>
+  </div>
+
+</div>
+
+<script>
+const allCards = [
+  // ESTRUCTURA AA
+  {
+    id: 1, category: 'estructura', categoryLabel: 'Estructura AA', difficulty: 'easy',
+    question: '¿Qué es un aminoácido y cuál es su estructura general?',
+    answer: 'Son los <strong>monómeros constituyentes de las proteínas</strong>. Tienen: un grupo amino (NH₂), un grupo ácido (COOH), un carbono α central (quiral), un hidrógeno y un <strong>grupo R variable</strong> que les da sus características únicas.',
+    clinical: 'Clínica: La estructura de los AA determina la forma de las proteínas → la forma determina la función. Alteraciones en AA = enfermedades como PKU o anemia falciforme.'
+  },
+  {
+    id: 2, category: 'estructura', categoryLabel: 'Estructura AA', difficulty: 'medium',
+    question: '¿Qué es el carbono α y por qué es importante?',
+    answer: 'Es el <strong>carbono central o quiral</strong>: está unido a 4 sustituyentes diferentes (NH₂, COOH, H y grupo R). Esto le otorga la capacidad de formar <strong>isómeros ópticos</strong>. Excepción: la Glicina, cuyo grupo R es un H → no tiene quiralidad.',
+    clinical: null
+  },
+  {
+    id: 3, category: 'estructura', categoryLabel: 'Estructura AA', difficulty: 'medium',
+    question: '¿Qué es la isomería óptica en los aminoácidos?',
+    answer: 'Capacidad de desviar la luz polarizada. Los isómeros se llaman <strong>enantiómeros</strong> (imágenes especulares no superponibles). <strong>L-aminoácidos</strong> desvían a la izquierda; <strong>D-aminoácidos</strong> a la derecha. En el ser humano <strong>sólo hay L-aminoácidos</strong>.',
+    clinical: null
+  },
+  {
+    id: 4, category: 'estructura', categoryLabel: 'Estructura AA', difficulty: 'easy',
+    question: '¿Cómo se clasifican los aminoácidos según su grupo R?',
+    answer: '<strong>Polares con carga neta ácida</strong> (ej: Glutamato) · <strong>Polares con carga neta básica</strong> (ej: Histidina) · <strong>Polares sin carga neta</strong> (ej: Serina) · <strong>No polares con núcleo aromático</strong> (ej: Tirosina) · <strong>No polares con cadena alifática</strong> (ej: Glicina)',
+    clinical: null
+  },
+  // ACIDO-BASE
+  {
+    id: 5, category: 'acido-base', categoryLabel: 'Ácido-Base', difficulty: 'medium',
+    question: '¿Qué es la forma zwitteriónica de un aminoácido?',
+    answer: 'La forma en que el aminoácido tiene <strong>una carga negativa y una carga positiva simultáneamente</strong>. El grupo amino está protonado (NH₃⁺) y el grupo carboxilo está desprotonado (COO⁻). La carga neta total es cero.',
+    clinical: 'Clínica: Esta propiedad es fundamental para entender el transporte de AA en sangre y su comportamiento en electroforesis.'
+  },
+  {
+    id: 6, category: 'acido-base', categoryLabel: 'Ácido-Base', difficulty: 'hard',
+    question: '¿Qué mide el punto isoeléctrico (pI)?',
+    answer: 'Es el <strong>valor de pH al que la carga neta del aminoácido es cero</strong>. Regla clave: si pH > pI → carga neta negativa. Si pH < pI → carga neta positiva.',
+    clinical: 'Clínica: En electroforesis de proteínas séricas se trabaja a pH 8,6 → todas las proteínas quedan cargadas negativamente y migran al ánodo (+).'
+  },
+  {
+    id: 7, category: 'acido-base', categoryLabel: 'Ácido-Base', difficulty: 'hard',
+    question: '¿Cómo se calcula el pI para un AA neutro, ácido y básico?',
+    answer: '<strong>AA neutro:</strong> pI = (pKa1 + pKa2) / 2 · <strong>AA ácido</strong> (ej: Glutamato): pI = (pK1 + pKR) / 2 → pI ácido (~3) · <strong>AA básico</strong> (ej: Histidina): pI = (pKR + pK2) / 2 → pI básico (~7,7)',
+    clinical: null
+  },
+  {
+    id: 8, category: 'acido-base', categoryLabel: 'Ácido-Base', difficulty: 'medium',
+    question: '¿Qué son pKa1, pKa2 y pKaR en la curva de titulación?',
+    answer: '<strong>pKa1</strong>: pH al que el 50% de los AA tienen el grupo amino protonado y 50% desprotonado · <strong>pKa2</strong>: mismo criterio para el grupo carboxilo · <strong>pKaR</strong>: pH al que el 50% tienen el grupo R protonado y 50% desprotonado.',
+    clinical: null
+  },
+  // ENLACE PEPTIDICO
+  {
+    id: 9, category: 'peptidico', categoryLabel: 'Enlace Peptídico', difficulty: 'easy',
+    question: '¿Cómo se forma el enlace peptídico?',
+    answer: 'Es una unión <strong>covalente tipo amida</strong> que se forma por <strong>condensación</strong>: el OH del grupo carboxilo de un AA reacciona con el H del grupo amino del siguiente AA → se libera una <strong>molécula de agua</strong> (H₂O).',
+    clinical: null
+  },
+  {
+    id: 10, category: 'peptidico', categoryLabel: 'Enlace Peptídico', difficulty: 'hard',
+    question: '¿Por qué el enlace peptídico es plano y no puede rotar?',
+    answer: 'El N tiene un par de e⁻ libres que cede al enlace C-N cuando el O atrae los electrones (es muy electronegativo). Esto genera un <strong>carácter parcial de doble enlace por resonancia</strong>, dando <strong>rigidez al enlace</strong>. Lo que SÍ puede rotar son los ángulos <strong>φ (fi)</strong> y <strong>ψ (psi)</strong>.',
+    clinical: 'Clínica: Esta rigidez limita las conformaciones posibles de las proteínas → determina su estructura secundaria y función.'
+  },
+  {
+    id: 11, category: 'peptidico', categoryLabel: 'Enlace Peptídico', difficulty: 'medium',
+    question: '¿Qué es el dipolo del enlace peptídico?',
+    answer: 'Cuando el O capta los electrones y el C forma doble enlace con N (C=N), se genera una distribución de cargas: <strong>carga (+) sobre el N</strong> y <strong>carga (–) sobre el O</strong>. Esta es la forma teórica; en realidad es un <strong>enlace híbrido</strong> donde los e⁻ migran constantemente.',
+    clinical: null
+  },
+  // PROTEINAS
+  {
+    id: 12, category: 'proteinas', categoryLabel: 'Proteínas', difficulty: 'easy',
+    question: '¿Cuáles son los 4 niveles de estructura de las proteínas?',
+    answer: '<strong>1° Primaria:</strong> secuencia de AA · <strong>2° Secundaria:</strong> disposición espacial local (α-hélice, hoja β, giros β) · <strong>3° Terciaria:</strong> plegamiento 3D completo · <strong>4° Cuaternaria:</strong> solo en proteínas con más de una cadena polipeptídica.',
+    clinical: 'Clínica: La desnaturalización afecta estructuras 2°, 3° y 4°, pero conserva la 1°. La información del plegado está en la secuencia primaria.'
+  },
+  {
+    id: 13, category: 'proteinas', categoryLabel: 'Proteínas', difficulty: 'medium',
+    question: '¿Cómo se estabiliza la α-hélice?',
+    answer: 'Por <strong>puentes de hidrógeno</strong> entre el H y el O del enlace peptídico, ubicados a ~4 AA de distancia (cada vuelta tiene 3,6 residuos). La hélice tiene una distribución de carga → un extremo negativo y uno positivo. Glicina y Prolina <strong>NO</strong> forman α-hélice.',
+    clinical: null
+  },
+  {
+    id: 14, category: 'proteinas', categoryLabel: 'Proteínas', difficulty: 'medium',
+    question: '¿Qué diferencia la hoja β paralela de la antiparalela?',
+    answer: '<strong>Paralela:</strong> todas las cadenas corren en la misma dirección N→C · <strong>Antiparalela:</strong> las cadenas van en dirección contraria (una N→C y la siguiente C→N). Ambas se estabilizan por puentes de hidrógeno.',
+    clinical: null
+  },
+  {
+    id: 15, category: 'proteinas', categoryLabel: 'Proteínas', difficulty: 'medium',
+    question: '¿Qué AA favorecen conformaciones α-hélice vs hoja β?',
+    answer: '<strong>Favorecen α-hélice:</strong> Glutamato, Metionina, Alanina · <strong>Favorecen conformaciones β:</strong> Isoleucina, Valina, Tirosina, Fenilalanina · <strong>Rompen ambas estructuras:</strong> Prolina y Glicina.',
+    clinical: null
+  },
+  {
+    id: 16, category: 'proteinas', categoryLabel: 'Proteínas', difficulty: 'hard',
+    question: '¿Qué interacciones estabilizan la estructura terciaria?',
+    answer: '<strong>5 tipos:</strong> interacciones hidrofóbicas entre grupos R · puentes de hidrógeno · interacciones electroestáticas · stacking (apilamiento de grupos aromáticos) · <strong>puentes disulfuro (S-S)</strong>. Es el plegamiento funcional final de la proteína.',
+    clinical: 'Clínica: Las proteínas necesitan su forma 3D para funcionar. Por eso la desnaturalización → pérdida de función enzimática, aunque la secuencia se conserve.'
+  },
+  {
+    id: 17, category: 'proteinas', categoryLabel: 'Proteínas', difficulty: 'medium',
+    question: '¿Qué es la desnaturalización y qué diferencia tiene con la hidrólisis?',
+    answer: '<strong>Desnaturalización:</strong> pérdida de estructuras 2°, 3° y 4°. La estructura primaria se conserva. Puede ser reversible (si se retira el agente desnaturalizante). <strong>Hidrólisis:</strong> ruptura del enlace peptídico → pérdida de TODOS los niveles. Es más profunda.',
+    clinical: 'Clínica: β-mercaptoetanol rompe puentes S-S. La urea y etanol son agentes caotrópicos. Detergentes afectan interacciones hidrofóbicas.'
+  },
+  {
+    id: 18, category: 'proteinas', categoryLabel: 'Proteínas', difficulty: 'easy',
+    question: '¿Cuál es la diferencia entre proteínas globulares y fibrosas?',
+    answer: '<strong>Globulares:</strong> forma esférica, múltiples tipos de estructura 2°, solubles en H₂O, más compactas. Ej: hemoglobina, mioglobina · <strong>Fibrosas:</strong> forma de hebra, un solo tipo de estructura 2°, insolubles en agua, función estructural. Ej: colágeno.',
+    clinical: null
+  },
+  {
+    id: 19, category: 'proteinas', categoryLabel: 'Proteínas', difficulty: 'easy',
+    question: '¿Cuál es la diferencia entre holoproteínas y heteroproteínas?',
+    answer: '<strong>Holoproteínas</strong> (simples): compuestas exclusivamente por aminoácidos · <strong>Heteroproteínas</strong> (complejas): compuestas por aminoácidos + otras sustancias. Ej: lipoproteínas (AA + lípidos).',
+    clinical: null
+  },
+  // TECNICAS
+  {
+    id: 20, category: 'tecnicas', categoryLabel: 'Técnicas Lab', difficulty: 'medium',
+    question: '¿Qué mide la espectrofotometría y en qué se basa?',
+    answer: 'Mide la <strong>luz absorbida por una sustancia</strong>. Las proteínas ricas en AA aromáticos absorben luz UV a <strong>280 nm</strong>. La cantidad de proteína se calcula con la <strong>Ley de Lambert-Beer: A = ε · L · C</strong> (absorbancia = absortividad molar × longitud del camino óptico × concentración).',
+    clinical: null
+  },
+  {
+    id: 21, category: 'tecnicas', categoryLabel: 'Técnicas Lab', difficulty: 'medium',
+    question: '¿En qué consiste el método de Bradford?',
+    answer: 'Se agrega un <strong>colorante azul</strong> que interacciona con AA hidrofóbicos. A más proteína → más color azul → más absorbancia. Se mide a <strong>595 nm</strong> (en vez de 280 nm). Principio: "cantidad en color".',
+    clinical: null
+  },
+  {
+    id: 22, category: 'tecnicas', categoryLabel: 'Técnicas Lab', difficulty: 'hard',
+    question: '¿Cómo funciona la electroforesis de proteínas?',
+    answer: 'Las proteínas migran a través de un gel poroso por un <strong>campo eléctrico</strong> según su relación <strong>carga/masa</strong>. Reglas: Mayor carga → mayor movilidad · Mayor masa → menor movilidad. Se pone cátodo (–) y ánodo (+) en extremos opuestos.',
+    clinical: 'Clínica: Usada para medir proteínas en sangre. A pH 8,6 todas las proteínas quedan con carga negativa y migran al polo positivo.'
+  },
+  {
+    id: 23, category: 'tecnicas', categoryLabel: 'Técnicas Lab', difficulty: 'medium',
+    question: '¿Cuáles son las bandas del proteinograma sérico normal?',
+    answer: 'De mayor a menor movilidad: <strong>Albúmina</strong> (banda más alta y puntiaguda, ~53-65%, proteína única) → banda α1 → banda α2 → banda β → <strong>banda γ</strong> (inmunoglobulinas, más ancha porque contiene Ig para todos los antígenos).',
+    clinical: 'Clínica: El pico de albúmina alto y agudo indica muestra homogénea. Las otras bandas son anchas porque contienen mezcla de proteínas con similar movilidad.'
+  },
+  {
+    id: 24, category: 'tecnicas', categoryLabel: 'Técnicas Lab', difficulty: 'hard',
+    question: '¿Cuál es la diferencia entre plasma y suero?',
+    answer: '<strong>Plasma:</strong> sangre obtenida en presencia de anticoagulante → contiene todas las proteínas incluyendo fibrinógeno · <strong>Suero:</strong> no contiene las proteínas de la cascada de coagulación (se consumieron en el proceso y quedaron retenidas en el coágulo).',
+    clinical: 'Clínica: La electroforesis de proteínas séricas se hace sobre suero porque el fibrinógeno es muy abundante y alteraría el resultado si usamos plasma.'
+  },
+  {
+    id: 25, category: 'tecnicas', categoryLabel: 'Técnicas Lab', difficulty: 'hard',
+    question: '¿Qué muestra la electroforesis de hemoglobina?',
+    answer: 'Se lisa glóbulos rojos y se trabaja la hemoglobina a pH 8,6. <strong>Hb A (adulto)</strong>: 2 cadenas alfa + 2 beta · <strong>Hb F (fetal)</strong>: 2 cadenas alfa + 2 gamma. La Hb F tiene <strong>mayor afinidad por O₂</strong> (necesita tomarlo de la Hb A materna).',
+    clinical: 'Clínica: Anemia falciforme (drepanocitosis) altera el resultado: la Hb S migra diferente por sustitución de Glu→Val en la cadena β.'
+  },
+  // EXTRAS
+  {
+    id: 26, category: 'peptidico', categoryLabel: 'Enlace Peptídico', difficulty: 'hard',
+    question: '¿Qué es el diagrama de Ramachandran?',
+    answer: 'Gráfico que representa los ángulos <strong>φ (fi)</strong> y <strong>ψ (psi)</strong> del enlace peptídico (los únicos que pueden rotar). Teóricamente van de -180° a +180°, pero los <strong>impedimentos estéricos de los grupos R</strong> limitan las rotaciones posibles, determinando qué conformaciones puede adoptar la proteína.',
+    clinical: null
+  },
+  {
+    id: 27, category: 'proteinas', categoryLabel: 'Proteínas', difficulty: 'medium',
+    question: '¿Qué son los giros beta y cómo se clasifican?',
+    answer: 'Son giros dentro de la cadena polipeptídica formados por <strong>4 residuos de AA</strong>, estabilizados por puentes de hidrógeno. Hay <strong>2 tipos: I y II</strong>, clasificados según su orientación. Suelen ubicarse uniendo dos regiones de beta-láminas.',
+    clinical: null
+  },
+  {
+    id: 28, category: 'acido-base', categoryLabel: 'Ácido-Base', difficulty: 'hard',
+    question: 'A pH=9 hay 4 proteínas con pI: 5, 9, 7 y 12. ¿Cómo migran en electroforesis?',
+    answer: '<strong>pI=5</strong>: pH>pI → carga negativa → migra al ánodo (+), muy lejos · <strong>pI=7</strong>: pH>pI → carga negativa → migra al ánodo, menos que la anterior · <strong>pI=9</strong>: pH=pI → carga neta 0 → <strong>no migra</strong> · <strong>pI=12</strong>: pH<pI → carga positiva → migra al cátodo (–)',
+    clinical: null
+  },
+];
+
+let deck = [...allCards];
+let currentIndex = 0;
+let isFlipped = false;
+let scores = { good: 0, ok: 0, bad: 0 };
+
+function renderCard() {
+  const card = deck[currentIndex];
+  if (!card) return;
+
+  const cardEl = document.getElementById('card');
+  const area = document.getElementById('card-area');
+  
+  // Reset flip
+  isFlipped = false;
+  cardEl.classList.remove('flipped');
+  document.getElementById('answer-actions').classList.remove('visible');
+  document.getElementById('flip-btn').style.display = '';
+
+  // Set content
+  document.getElementById('card-category').textContent = card.categoryLabel;
+  document.getElementById('card-question').textContent = card.question;
+  document.getElementById('card-answer').innerHTML = card.answer;
+  
+  const diffTag = document.getElementById('diff-tag');
+  const diffMap = { easy: ['fácil', 'easy'], medium: ['medio', 'medium'], hard: ['difícil', 'hard'] };
+  const [label, cls] = diffMap[card.difficulty];
+  diffTag.textContent = label;
+  diffTag.className = 'diff-tag ' + cls;
+
+  const clinicalNote = document.getElementById('clinical-note');
+  if (card.clinical) {
+    clinicalNote.style.display = 'flex';
+    document.getElementById('clinical-text').textContent = card.clinical;
+  } else {
+    clinicalNote.style.display = 'none';
+  }
+
+  // Update progress
+  const total = deck.length;
+  document.getElementById('current-num').textContent = currentIndex + 1;
+  document.getElementById('total-num').textContent = total;
+  document.getElementById('nav-index').textContent = `${currentIndex + 1} / ${total}`;
+  document.getElementById('progress-fill').style.width = ((currentIndex + 1) / total * 100) + '%';
+  document.getElementById('remaining-count').textContent = total - currentIndex;
+  
+  // Nav buttons
+  document.getElementById('prev-btn').disabled = currentIndex === 0;
+  document.getElementById('next-btn').disabled = currentIndex === total - 1;
+
+  // Animate
+  area.style.animation = 'none';
+  requestAnimationFrame(() => { area.style.animation = 'cardIn 0.3s ease'; });
+}
+
+function flipCard() {
+  if (!isFlipped) {
+    document.getElementById('card').classList.add('flipped');
+    document.getElementById('answer-actions').classList.add('visible');
+    document.getElementById('flip-btn').style.display = 'none';
+    isFlipped = true;
+  }
+}
+
+function markCard(result) {
+  scores[result]++;
+  document.getElementById('score-good').textContent = scores.good;
+  document.getElementById('score-ok').textContent = scores.ok;
+  document.getElementById('score-bad').textContent = scores.bad;
+
+  if (currentIndex < deck.length - 1) {
+    currentIndex++;
+    renderCard();
+  } else {
+    showCompletion();
+  }
+}
+
+function nextCard() {
+  if (currentIndex < deck.length - 1) {
+    currentIndex++;
+    renderCard();
+  }
+}
+
+function prevCard() {
+  if (currentIndex > 0) {
+    currentIndex--;
+    renderCard();
+  }
+}
+
+function filterCards(cat, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  
+  if (cat === 'all') {
+    deck = [...allCards];
+  } else {
+    deck = allCards.filter(c => c.category === cat);
+  }
+  
+  currentIndex = 0;
+  scores = { good: 0, ok: 0, bad: 0 };
+  document.getElementById('score-good').textContent = 0;
+  document.getElementById('score-ok').textContent = 0;
+  document.getElementById('score-bad').textContent = 0;
+  document.getElementById('total-count').textContent = deck.length;
+  document.getElementById('remaining-count').textContent = deck.length;
+  renderCard();
+}
+
+function shuffleCards() {
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+  currentIndex = 0;
+  renderCard();
+}
+
+function showCompletion() {
+  document.getElementById('main-view').style.display = 'none';
+  const comp = document.getElementById('completion-screen');
+  comp.classList.add('visible');
+  document.getElementById('final-good').textContent = scores.good;
+  document.getElementById('final-ok').textContent = scores.ok;
+  document.getElementById('final-bad').textContent = scores.bad;
+}
+
+function restartDeck() {
+  deck = [...allCards];
+  currentIndex = 0;
+  scores = { good: 0, ok: 0, bad: 0 };
+  document.getElementById('score-good').textContent = 0;
+  document.getElementById('score-ok').textContent = 0;
+  document.getElementById('score-bad').textContent = 0;
+  document.getElementById('completion-screen').classList.remove('visible');
+  document.getElementById('main-view').style.display = 'block';
+  renderCard();
+}
+
+// Init
+renderCard();
+</script>
+</body>
+</html>
