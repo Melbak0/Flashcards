@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Melbako · Enzimas</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a; --surface: #111827; --surface2: #1a2235; --border: #1e3a5f;
+    --accent: #00d4ff; --accent2: #7c3aed; --green: #10b981; --red: #ef4444;
+    --yellow: #f59e0b; --text: #e2e8f0; --muted: #64748b;
+    --card-front: #0f1c2e; --card-back: #0d1f1a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
+  body::before { content: ''; position: fixed; inset: 0;
+    background-image: linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px; pointer-events: none; z-index: 0; }
+  .container { max-width: 900px; margin: 0 auto; padding: 0 20px; position: relative; z-index: 1; }
+  header { padding: 32px 0 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo-mark { width: 40px; height: 40px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 14px; color: white; letter-spacing: -0.5px; }
+  .logo-text { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 18px; color: white; line-height: 1.1; }
+  .logo-text span { display: block; font-size: 11px; font-weight: 400; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; font-family: 'DM Mono', monospace; }
+  .topic-badge { background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.25); color: var(--accent); padding: 6px 14px; border-radius: 20px; font-size: 12px; font-family: 'DM Mono', monospace; letter-spacing: 0.05em; }
+  .filter-bar { display: flex; gap: 8px; margin-bottom: 28px; flex-wrap: wrap; }
+  .filter-btn { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); font-size: 13px; cursor: pointer; transition: all 0.2s; font-family: 'DM Sans', sans-serif; }
+  .filter-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .filter-btn.active { background: rgba(0,212,255,0.12); border-color: var(--accent); color: var(--accent); }
+  .progress-section { margin-bottom: 32px; }
+  .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .progress-label { font-size: 13px; color: var(--muted); font-family: 'DM Mono', monospace; }
+  .progress-count { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 22px; color: white; }
+  .progress-count span { color: var(--muted); font-size: 15px; }
+  .progress-track { height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 2px; transition: width 0.4s ease; }
+  .score-row { display: flex; gap: 16px; margin-top: 12px; }
+  .score-pill { display: flex; align-items: center; gap: 6px; font-size: 12px; font-family: 'DM Mono', monospace; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot.green { background: var(--green); } .dot.red { background: var(--red); } .dot.yellow { background: var(--yellow); }
+  .card-area { margin-bottom: 28px; cursor: pointer; }
+  .card { width: 100%; min-height: 320px; }
+  .card-face { display: none; flex-direction: column; justify-content: center; border-radius: 24px; padding: 48px 52px; min-height: 320px; }
+  .card-face.active { display: flex; }
+  .card-front { background: var(--card-front); border: 1px solid var(--border); position: relative; overflow: hidden; }
+  .card-front::before { content: ''; position: absolute; top: -60px; right: -60px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(0,212,255,0.08) 0%, transparent 70%); pointer-events: none; }
+  .card-back { background: var(--card-back); border: 1px solid rgba(16,185,129,0.3); overflow: hidden; }
+  .card-back::before { content: ''; position: absolute; bottom: -60px; left: -60px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(16,185,129,0.06) 0%, transparent 70%); pointer-events: none; }
+  .card-category { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+  .card-category::before { content: ''; width: 20px; height: 1px; background: var(--accent); }
+  .card-back .card-category { color: var(--green); } .card-back .card-category::before { background: var(--green); }
+  .card-question { font-family: 'Syne', sans-serif; font-weight: 600; font-size: clamp(18px, 3vw, 24px); line-height: 1.4; color: white; margin-bottom: 20px; }
+  .card-hint { font-size: 13px; color: var(--muted); margin-top: auto; display: flex; align-items: center; gap: 6px; }
+  .card-hint svg { opacity: 0.5; }
+  .card-answer { font-size: 16px; line-height: 1.7; color: #c8e6c9; margin-bottom: 16px; }
+  .card-answer strong { color: var(--green); }
+  .clinical-note { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); border-radius: 10px; padding: 12px 16px; font-size: 13px; color: #fcd34d; margin-top: 16px; display: flex; gap: 10px; align-items: flex-start; }
+  .clinical-note-icon { flex-shrink: 0; margin-top: 1px; }
+  .action-row { display: flex; gap: 12px; justify-content: center; margin-bottom: 32px; flex-wrap: wrap; }
+  .btn { padding: 13px 28px; border-radius: 12px; border: none; font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 15px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
+  .btn-ghost { background: var(--surface); border: 1px solid var(--border); color: var(--muted); }
+  .btn-ghost:hover { border-color: var(--muted); color: var(--text); }
+  .btn-bad { background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; } .btn-bad:hover { background: rgba(239,68,68,0.2); }
+  .btn-ok { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); color: #fcd34d; } .btn-ok:hover { background: rgba(245,158,11,0.2); }
+  .btn-good { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7; } .btn-good:hover { background: rgba(16,185,129,0.2); }
+  .answer-actions { display: none; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .answer-actions.visible { display: flex; }
+  .nav-row { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 48px; }
+  .nav-btn { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-size: 18px; }
+  .nav-btn:hover { border-color: var(--accent); color: var(--accent); } .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .nav-index { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--muted); min-width: 80px; text-align: center; }
+  .shuffle-btn { display: flex; align-items: center; gap: 8px; margin: 0 auto 40px; padding: 10px 20px; background: transparent; border: 1px dashed var(--border); color: var(--muted); border-radius: 8px; cursor: pointer; font-size: 13px; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+  .shuffle-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+  .completion { display: none; text-align: center; padding: 60px 20px; }
+  .completion.visible { display: block; }
+  .completion-emoji { font-size: 64px; margin-bottom: 24px; }
+  .completion-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 32px; color: white; margin-bottom: 12px; }
+  .completion-sub { color: var(--muted); font-size: 16px; margin-bottom: 40px; }
+  .completion-stats { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px; }
+  .stat-box { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px 28px; min-width: 120px; }
+  .stat-num { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 36px; }
+  .stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .stat-green .stat-num { color: var(--green); } .stat-yellow .stat-num { color: var(--yellow); } .stat-red .stat-num { color: var(--red); }
+  .btn-restart { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; font-weight: 600; }
+  .btn-restart:hover { opacity: 0.9; transform: translateY(-1px); }
+  .diff-tag { position: absolute; top: 20px; right: 20px; font-family: 'DM Mono', monospace; font-size: 10px; padding: 4px 10px; border-radius: 4px; letter-spacing: 0.08em; }
+  .diff-tag.easy { background: rgba(16,185,129,0.15); color: var(--green); }
+  .diff-tag.medium { background: rgba(245,158,11,0.15); color: var(--yellow); }
+  .diff-tag.hard { background: rgba(239,68,68,0.15); color: #fca5a5; }
+  .deck-info { display: flex; gap: 20px; margin-bottom: 28px; flex-wrap: wrap; }
+  .deck-stat { display: flex; flex-direction: column; gap: 2px; }
+  .deck-stat-num { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 20px; color: white; }
+  .deck-stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; font-family: 'DM Mono', monospace; }
+  .divider { width: 1px; background: var(--border); height: 36px; }
+  @keyframes cardIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .card-area { animation: cardIn 0.3s ease; }
+  .flip-hint { text-align: center; font-size: 12px; color: var(--muted); margin-bottom: 16px; font-family: 'DM Mono', monospace; letter-spacing: 0.05em; }
+  #main-view { display: block; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo">
+      <div class="logo-mark">MB</div>
+      <div class="logo-text">
+        Melbako
+        <span>Bioquímica · Medicina</span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <a href="index.html" style="font-size:0.82rem;color:var(--muted);text-decoration:none;border:1px solid rgba(255,255,255,0.1);padding:0.4rem 0.9rem;border-radius:8px;transition:all 0.2s;font-family:'DM Sans',sans-serif;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='var(--muted)'">← Volver a temas</a>
+      <div class="topic-badge">Enzimas</div>
+    </div>
+  </header>
+
+  <div id="main-view">
+    <div class="deck-info">
+      <div class="deck-stat"><div class="deck-stat-num" id="total-count">32</div><div class="deck-stat-label">Flashcards</div></div>
+      <div class="divider"></div>
+      <div class="deck-stat"><div class="deck-stat-num">6</div><div class="deck-stat-label">Temas</div></div>
+      <div class="divider"></div>
+      <div class="deck-stat"><div class="deck-stat-num" id="remaining-count">32</div><div class="deck-stat-label">Restantes</div></div>
+    </div>
+
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterCards('all', this)">Todas</button>
+      <button class="filter-btn" onclick="filterCards('fundamentos', this)">Fundamentos y Clasificación</button>
+      <button class="filter-btn" onclick="filterCards('cinetica', this)">Cinética (Km/Vmax)</button>
+      <button class="filter-btn" onclick="filterCards('factores', this)">pH y Temperatura</button>
+      <button class="filter-btn" onclick="filterCards('inhibicion', this)">Inhibidores</button>
+      <button class="filter-btn" onclick="filterCards('regulacion', this)">Regulación</button>
+      <button class="filter-btn" onclick="filterCards('clinica', this)">Aplicación Clínica</button>
+    </div>
+
+    <div class="progress-section">
+      <div class="progress-header">
+        <div class="progress-label">PROGRESO DE REPASO</div>
+        <div class="progress-count"><span id="current-num">1</span> <span>/ <span id="total-num">32</span></span></div>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width: 3.1%"></div></div>
+      <div class="score-row">
+        <div class="score-pill"><div class="dot green"></div><span id="score-good">0</span> sabía</div>
+        <div class="score-pill"><div class="dot yellow"></div><span id="score-ok">0</span> más o menos</div>
+        <div class="score-pill"><div class="dot red"></div><span id="score-bad">0</span> no sabía</div>
+      </div>
+    </div>
+
+    <div class="flip-hint">↓ Hacé click para ver la respuesta</div>
+    <div class="card-area" onclick="flipCard()" id="card-area">
+      <div class="card" id="card">
+        <div class="card-face card-front active" id="card-front">
+          <div class="card-category" id="card-category"></div>
+          <div class="diff-tag" id="diff-tag"></div>
+          <div class="card-question" id="card-question"></div>
+          <div class="card-hint">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            Click para revelar
+          </div>
+        </div>
+        <div class="card-face card-back" id="card-back">
+          <div class="card-category">Respuesta</div>
+          <div class="card-answer" id="card-answer"></div>
+          <div class="clinical-note" id="clinical-note" style="display:none">
+            <span class="clinical-note-icon">⚕️</span>
+            <span id="clinical-text"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-row">
+      <button class="btn btn-ghost" onclick="flipCard()" id="flip-btn">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
+        Ver respuesta
+      </button>
+      <div class="answer-actions" id="answer-actions">
+        <button class="btn btn-bad" onclick="markCard('bad')">😅 No sabía</button>
+        <button class="btn btn-ok" onclick="markCard('ok')">🤔 Más o menos</button>
+        <button class="btn btn-good" onclick="markCard('good')">✅ Lo sabía</button>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="nav-btn" onclick="prevCard()" id="prev-btn">←</button>
+      <div class="nav-index" id="nav-index">1 / 32</div>
+      <button class="nav-btn" onclick="nextCard()" id="next-btn">→</button>
+    </div>
+
+    <button class="shuffle-btn" onclick="shuffleCards()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/>
+        <polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/>
+      </svg>
+      Mezclar cartas
+    </button>
+  </div>
+
+  <div class="completion" id="completion-screen">
+    <div class="completion-emoji" id="result-emoji">🎉</div>
+    <div class="completion-title">¡Mazo completado!</div>
+    <div class="completion-sub" id="result-mensaje">Terminaste de repasar todas las flashcards</div>
+    <div class="completion-stats">
+      <div class="stat-box stat-green"><div class="stat-num" id="final-good">0</div><div class="stat-label">Lo sabía</div></div>
+      <div class="stat-box stat-yellow"><div class="stat-num" id="final-ok">0</div><div class="stat-label">Más o menos</div></div>
+      <div class="stat-box stat-red"><div class="stat-num" id="final-bad">0</div><div class="stat-label">No sabía</div></div>
+    </div>
+    <div id="comparacion" style="display:none;margin:16px 0;padding:14px 20px;background:rgba(255,255,255,0.04);border-radius:12px;font-size:0.85rem;color:#888;text-align:center;">
+      Intento anterior: <span id="pct-anterior" style="color:#ccc;font-weight:600;"></span> → Este intento: <span id="pct-actual" style="color:#00d4ff;font-weight:600;"></span>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:8px;">
+      <button class="btn btn-restart" onclick="restartDeck()">↺ Reintentar</button>
+      <a href="index.html" style="display:inline-flex;align-items:center;padding:0 20px;height:44px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);color:#aaa;font-family:'DM Sans',sans-serif;font-size:0.9rem;text-decoration:none;">← Volver a temas</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const allCards = [
+  {
+    "id": 1,
+    "category": "fundamentos",
+    "categoryLabel": "Fundamentos y Clasificación",
+    "difficulty": "easy",
+    "question": "¿Qué son las enzimas y de qué naturaleza son?",
+    "answer": "Son <strong>catalizadores biológicos</strong> de naturaleza principalmente <strong>proteica</strong>. Un catalizador es cualquier sustancia que <strong>acelera la velocidad</strong> de las reacciones.",
+    "clinical": null
+  },
+  {
+    "id": 2,
+    "category": "fundamentos",
+    "categoryLabel": "Fundamentos y Clasificación",
+    "difficulty": "easy",
+    "question": "¿Cómo logran las enzimas acelerar una reacción y en qué factor?",
+    "answer": "Aumentan la velocidad por un factor de <strong>10⁵ a 10⁷</strong>, gracias a la <strong>disminución de la energía de activación (Ea)</strong>. NO modifican el equilibrio de la reacción.",
+    "clinical": null
+  },
+  {
+    "id": 3,
+    "category": "fundamentos",
+    "categoryLabel": "Fundamentos y Clasificación",
+    "difficulty": "medium",
+    "question": "¿Cuáles son las 6 clases de enzimas según la clasificación EC?",
+    "answer": "1) <strong>Oxidorreductasas</strong> (transfieren e⁻/H⁺) · 2) <strong>Transferasas</strong> (transfieren grupos) · 3) <strong>Hidrolasas</strong> (hidrólisis) · 4) <strong>Liasas/sintasas</strong> (adición/eliminación en dobles enlaces, sin ATP) · 5) <strong>Isomerasas</strong> (isómeros) · 6) <strong>Ligasas/sintetasas</strong> (forman enlaces con gasto de ATP).",
+    "clinical": null
+  },
+  {
+    "id": 4,
+    "category": "fundamentos",
+    "categoryLabel": "Fundamentos y Clasificación",
+    "difficulty": "medium",
+    "question": "Diferenciá liasas/sintasas de ligasas/sintetasas.",
+    "answer": "Las <strong>liasas (sintasas)</strong> agregan grupos a dobles enlaces o forman dobles enlaces por eliminación, <strong>SIN gasto de ATP</strong>. Las <strong>ligasas (sintetasas)</strong> forman enlaces C-C, C-S, C-O, C-N <strong>CON gasto de ATP</strong>.",
+    "clinical": null
+  },
+  {
+    "id": 5,
+    "category": "fundamentos",
+    "categoryLabel": "Fundamentos y Clasificación",
+    "difficulty": "easy",
+    "question": "¿Qué diferencia hay entre apoenzima y holoenzima?",
+    "answer": "La <strong>apoenzima</strong> es totalmente proteica (e inactiva). La <strong>holoenzima</strong> es la enzima activa completa: <strong>apoenzima + cofactor</strong>.",
+    "clinical": null
+  },
+  {
+    "id": 6,
+    "category": "fundamentos",
+    "categoryLabel": "Fundamentos y Clasificación",
+    "difficulty": "medium",
+    "question": "¿Qué es un cofactor y qué tipos existen?",
+    "answer": "Molécula <strong>no proteica</strong> necesaria para la actividad catalítica. Tipos: <strong>iones</strong> (Fe, Cu, unión temporal), <strong>coenzimas</strong> (orgánicas, unión débil, derivan de vitaminas: NAD, CoA, ATP) y <strong>grupos prostéticos</strong> (unión covalente: FAD, retinol).",
+    "clinical": null
+  },
+  {
+    "id": 7,
+    "category": "fundamentos",
+    "categoryLabel": "Fundamentos y Clasificación",
+    "difficulty": "medium",
+    "question": "¿Qué dice el modelo de ajuste inducido sobre la interacción enzima-sustrato?",
+    "answer": "La complementariedad con el <strong>estado de transición</strong> no es evidente en la enzima aislada, sino que aparece tras la unión del sustrato por <strong>cambios conformacionales</strong>. La enzima se adapta al sustrato. Reemplaza al obsoleto modelo <strong>llave-cerradura</strong>.",
+    "clinical": null
+  },
+  {
+    "id": 8,
+    "category": "fundamentos",
+    "categoryLabel": "Fundamentos y Clasificación",
+    "difficulty": "hard",
+    "question": "¿Por qué una enzima debe ser complementaria al estado de transición y no al sustrato?",
+    "answer": "Si fuera complementaria al sustrato habría una <strong>gran estabilización del complejo ES</strong> y la Ea sería incluso mayor (catalizador inefectivo). Al ser complementaria al <strong>estado de transición</strong>, lo estabiliza y <strong>disminuye la Ea</strong>, siendo un catalizador efectivo.",
+    "clinical": null
+  },
+  {
+    "id": 9,
+    "category": "cinetica",
+    "categoryLabel": "Cinética (Km/Vmax)",
+    "difficulty": "easy",
+    "question": "¿Qué es la velocidad inicial (V₀) y por qué se usa?",
+    "answer": "Es la velocidad a <strong>tiempo 0</strong> (o tiempos cortos), donde conocemos la [S] agregada y la <strong>[P] = 0</strong>, por lo que <strong>no hay influencia de la reacción inversa</strong>. Se calcula como la pendiente de la tangente a T=0.",
+    "clinical": null
+  },
+  {
+    "id": 10,
+    "category": "cinetica",
+    "categoryLabel": "Cinética (Km/Vmax)",
+    "difficulty": "medium",
+    "question": "¿Qué es la Km (constante de Michaelis-Menten) y cómo se calcula?",
+    "answer": "Es una <strong>constante</strong> propia de cada enzima/reacción. Km = (k₂ + k₋₁) / k₁, es decir la relación entre las velocidades que <strong>consumen el complejo ES</strong> (hacia S o hacia P) sobre la constante de <strong>formación del ES</strong> (k₁).",
+    "clinical": null
+  },
+  {
+    "id": 11,
+    "category": "cinetica",
+    "categoryLabel": "Cinética (Km/Vmax)",
+    "difficulty": "medium",
+    "question": "¿Cómo se relaciona la Km con la afinidad de la enzima por el sustrato?",
+    "answer": "La Km es <strong>inversamente proporcional a la afinidad</strong>: a <strong>mayor Km, menor afinidad</strong>; a <strong>menor Km, mayor afinidad</strong>. La Km equivale a la [S] a la que la enzima trabaja a ½ Vmax.",
+    "clinical": null
+  },
+  {
+    "id": 12,
+    "category": "cinetica",
+    "categoryLabel": "Cinética (Km/Vmax)",
+    "difficulty": "medium",
+    "question": "¿Qué es la Vmax y de qué depende?",
+    "answer": "Es la <strong>máxima velocidad</strong> que puede alcanzar la enzima, relacionada con la cantidad de sitios activos disponibles. <strong>Vmax = k₂ · [E]total</strong>. NO es constante (depende de la cantidad de enzima).",
+    "clinical": null
+  },
+  {
+    "id": 13,
+    "category": "cinetica",
+    "categoryLabel": "Cinética (Km/Vmax)",
+    "difficulty": "easy",
+    "question": "¿Qué forma tiene la curva V₀ vs [S] en una enzima michaeliana y qué fenómeno muestra?",
+    "answer": "Una <strong>hipérbola</strong>. Muestra <strong>saturación por el sustrato</strong>, característica distintiva de la catálisis enzimática. (Las enzimas alostéricas dan una curva <strong>sigmoidea</strong>.)",
+    "clinical": null
+  },
+  {
+    "id": 14,
+    "category": "cinetica",
+    "categoryLabel": "Cinética (Km/Vmax)",
+    "difficulty": "hard",
+    "question": "¿Para qué sirve la gráfica de Lineweaver-Burk (doble recíproca)?",
+    "answer": "Es una <strong>transformación algebraica</strong> (se invierte) de la ecuación de Michaelis-Menten que convierte la hipérbola en una <strong>recta</strong>, permitiendo determinar valores <strong>exactos de Vmax y Km</strong> por extrapolación. Se usa cuando no hay un programa de PC que lo calcule.",
+    "clinical": null
+  },
+  {
+    "id": 15,
+    "category": "cinetica",
+    "categoryLabel": "Cinética (Km/Vmax)",
+    "difficulty": "easy",
+    "question": "¿Cómo se define la velocidad de una reacción enzimática?",
+    "answer": "Como el cambio de concentración en función del tiempo: <strong>V = Δ[P]/ΔT</strong> (aparición de producto) o <strong>V = -Δ[S]/ΔT</strong> (desaparición de sustrato). Se mide por una propiedad que cambie entre S y P, como la <strong>absorbancia (densidad óptica)</strong>.",
+    "clinical": null
+  },
+  {
+    "id": 16,
+    "category": "factores",
+    "categoryLabel": "pH y Temperatura",
+    "difficulty": "easy",
+    "question": "¿Cómo afecta el pH a la actividad enzimática?",
+    "answer": "Los <strong>pH extremos inactivan</strong> a las enzimas por <strong>desnaturalización</strong>. En el pH óptimo el estado de <strong>ionización</strong> del sustrato y de los aminoácidos del sitio activo permite la máxima interacción E-S.",
+    "clinical": null
+  },
+  {
+    "id": 17,
+    "category": "factores",
+    "categoryLabel": "pH y Temperatura",
+    "difficulty": "medium",
+    "question": "¿Por qué la curva de actividad vs temperatura tiene dos etapas?",
+    "answer": "Primero la velocidad <strong>aumenta con la T°</strong> porque crece el movimiento molecular y la <strong>probabilidad de choque E-S</strong>, hasta la T° óptima. Luego <strong>cae</strong> porque la enzima se <strong>desnaturaliza térmicamente</strong>.",
+    "clinical": null
+  },
+  {
+    "id": 18,
+    "category": "factores",
+    "categoryLabel": "pH y Temperatura",
+    "difficulty": "easy",
+    "question": "¿Cuál es la temperatura óptima de las enzimas humanas?",
+    "answer": "Entre <strong>35°C y 40°C</strong>. Más allá de los <strong>40°C</strong> comienzan a desnaturalizarse.",
+    "clinical": "Clínica: explica por qué la fiebre muy alta (>40-41°C) es peligrosa: compromete la función enzimática y puede causar daño celular y orgánico."
+  },
+  {
+    "id": 19,
+    "category": "inhibicion",
+    "categoryLabel": "Inhibidores",
+    "difficulty": "easy",
+    "question": "¿Cómo se clasifican los inhibidores enzimáticos?",
+    "answer": "En <strong>irreversibles (suicidas)</strong> y <strong>reversibles</strong>. Dentro de los reversibles: <strong>competitivos, acompetitivos, mixtos y no competitivos</strong>. En la naturaleza hay pocos; suelen ser fármacos.",
+    "clinical": null
+  },
+  {
+    "id": 20,
+    "category": "inhibicion",
+    "categoryLabel": "Inhibidores",
+    "difficulty": "hard",
+    "question": "¿Cómo actúa un inhibidor competitivo sobre Km y Vmax?",
+    "answer": "Es estructuralmente similar al sustrato y <strong>compite por el sitio activo</strong>. Disminuye la afinidad aparente, por lo que <strong>aumenta la Km</strong> pero <strong>NO modifica la Vmax</strong> (se vence con más sustrato).",
+    "clinical": null
+  },
+  {
+    "id": 21,
+    "category": "inhibicion",
+    "categoryLabel": "Inhibidores",
+    "difficulty": "hard",
+    "question": "¿Qué caracteriza a un inhibidor acompetitivo?",
+    "answer": "Se une <strong>al complejo ES</strong> (no a la enzima libre), formando ESI inefectivo. Al desplazar E+S hacia la derecha aparenta un aumento de afinidad: <strong>disminuye la Km</strong> y disminuye la actividad (baja Vmax).",
+    "clinical": null
+  },
+  {
+    "id": 22,
+    "category": "inhibicion",
+    "categoryLabel": "Inhibidores",
+    "difficulty": "medium",
+    "question": "¿Cómo actúan los inhibidores no competitivos y los mixtos?",
+    "answer": "El <strong>no competitivo</strong> se une a un <strong>sitio distinto al activo</strong>, provoca un cambio conformacional que impide S→P. El <strong>mixto</strong> se une tanto a la enzima libre como al ES pero con <strong>distinta afinidad</strong> (Ki ≠ K'i); el producto solo se forma desde ES, no desde ESI.",
+    "clinical": null
+  },
+  {
+    "id": 23,
+    "category": "inhibicion",
+    "categoryLabel": "Inhibidores",
+    "difficulty": "medium",
+    "question": "¿Qué es un inhibidor suicida (irreversible) y cómo funciona?",
+    "answer": "Es un <strong>análogo del sustrato</strong> diseñado para inactivar selectivamente una enzima: la propia enzima lo convierte en una especie reactiva que se une al sitio activo de forma <strong>covalente</strong>, inactivándola de modo irreversible.",
+    "clinical": null
+  },
+  {
+    "id": 24,
+    "category": "inhibicion",
+    "categoryLabel": "Inhibidores",
+    "difficulty": "medium",
+    "question": "¿Cómo funciona el ácido clavulánico como inhibidor suicida?",
+    "answer": "Inhibe la <strong>beta-lactamasa</strong> bacteriana. Tiene un anillo β-lactámico similar a la penicilina; al ser clivado genera un grupo reactivo que se une a una <strong>serina del sitio activo</strong>, inactivando la enzima.",
+    "clinical": "Clínica: por eso la amoxicilina se combina con ácido clavulánico, protegiendo el antibiótico de bacterias resistentes que producen beta-lactamasa."
+  },
+  {
+    "id": 25,
+    "category": "regulacion",
+    "categoryLabel": "Regulación",
+    "difficulty": "easy",
+    "question": "¿Qué tipos de regulación enzimática a corto plazo existen?",
+    "answer": "Sobre una enzima preexistente: <strong>alostérica</strong>, por <strong>modificación covalente</strong> y por <strong>compartimentalización</strong>. A largo plazo se regula la <strong>cantidad de enzima</strong> (transcripción/degradación).",
+    "clinical": null
+  },
+  {
+    "id": 26,
+    "category": "regulacion",
+    "categoryLabel": "Regulación",
+    "difficulty": "medium",
+    "question": "¿Qué caracteriza a las enzimas alostéricas?",
+    "answer": "Tienen un <strong>sitio activo</strong> y un <strong>sitio alostérico/regulador</strong> donde se une un modulador (+ o −). Suelen tener <strong>estructura cuaternaria</strong>, presentan <strong>cooperatividad</strong> y cinética <strong>sigmoidea</strong>. Catalizan pasos irreversibles o encrucijadas metabólicas.",
+    "clinical": null
+  },
+  {
+    "id": 27,
+    "category": "regulacion",
+    "categoryLabel": "Regulación",
+    "difficulty": "hard",
+    "question": "¿Qué son las conformaciones R y T en enzimas alostéricas?",
+    "answer": "<strong>R (relajada)</strong>: mayor actividad, favorecida por <strong>moduladores positivos</strong>. <strong>T (tensa)</strong>: menor actividad, favorecida por <strong>moduladores negativos</strong>. El modulador induce una conformación → cambia la cinética.",
+    "clinical": null
+  },
+  {
+    "id": 28,
+    "category": "regulacion",
+    "categoryLabel": "Regulación",
+    "difficulty": "hard",
+    "question": "Diferenciá el modelo concertado de Monod del secuencial de Koshland.",
+    "answer": "<strong>Concertado (Monod)</strong>: 'todo o nada', el cambio T→R ocurre en <strong>todas las subunidades a la vez</strong>. <strong>Secuencial (Koshland)</strong>: 'uno por uno', el cambio se da en una subunidad y se transmite progresivamente, aumentando la afinidad de forma cooperativa (como la hemoglobina).",
+    "clinical": null
+  },
+  {
+    "id": 29,
+    "category": "regulacion",
+    "categoryLabel": "Regulación",
+    "difficulty": "easy",
+    "question": "En la regulación covalente por fosforilación, ¿qué hacen quinasas y fosfatasas?",
+    "answer": "<strong>Quinasas (kinasas) → fosforilan</strong> · <strong>Fosfatasas → desfosforilan</strong>. Es una modificación covalente reversible dada por otras enzimas. Ejemplo: glucógeno fosforilasa.",
+    "clinical": null
+  },
+  {
+    "id": 30,
+    "category": "regulacion",
+    "categoryLabel": "Regulación",
+    "difficulty": "medium",
+    "question": "¿Qué es la activación proteolítica y por qué es irreversible?",
+    "answer": "Una <strong>proenzima (zimógeno)</strong> se proteoliza: se escinde parte de su cadena por <strong>hidrólisis de un enlace peptídico</strong> para volverse funcional. Es <strong>irreversible</strong>. Ejemplos: tripsinógeno, proelastasa, procarboxipeptidasas.",
+    "clinical": null
+  },
+  {
+    "id": 31,
+    "category": "clinica",
+    "categoryLabel": "Aplicación Clínica",
+    "difficulty": "medium",
+    "question": "¿Por qué la presencia de ciertas enzimas en plasma tiene valor diagnóstico?",
+    "answer": "Hay enzimas plasmáticas <strong>no funcionales</strong> que normalmente están en baja [ ]. Un <strong>aumento</strong> indica patología o cambios de permeabilidad celular. En la <strong>necrosis</strong> (trauma, IAM) se liberan en altas concentraciones. Ej: <strong>transaminasas, CPK</strong>.",
+    "clinical": "Clínica: la elevación de CPK y troponinas orienta a daño muscular/cardíaco; las transaminasas (TGO/TGP) a daño hepático."
+  },
+  {
+    "id": 32,
+    "category": "clinica",
+    "categoryLabel": "Aplicación Clínica",
+    "difficulty": "easy",
+    "question": "¿Cómo se usan las enzimas como reactivos en el laboratorio clínico?",
+    "answer": "Se usan en kits que dosan metabolitos acoplados a una <strong>reacción colorimétrica</strong>: a mayor color, mayor concentración (medido por espectrofotómetro). Ej: <strong>ureasa</strong> (urea), <strong>glucosa oxidasa</strong> (glucemia), <strong>colesterol oxidasa</strong>, lipasa.",
+    "clinical": null
+  }
+];
+const TEMA = "enzimas";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzlYbSVscgP_lF5KzfsUcCT063DixFTfn5-0mgZvAxVoQm7qiKESlc8eKDn0Vz8agj8/exec";
+let deck = [...allCards];
+let currentIndex = 0, isFlipped = false;
+let scores = { good: 0, ok: 0, bad: 0 };
+
+function renderCard() {
+  const card = deck[currentIndex];
+  if (!card) return;
+  const area = document.getElementById('card-area');
+  isFlipped = false;
+  document.getElementById('card-front').classList.add('active');
+  document.getElementById('card-back').classList.remove('active');
+  document.getElementById('answer-actions').classList.remove('visible');
+  document.getElementById('flip-btn').style.display = '';
+  document.getElementById('card-category').textContent = card.categoryLabel;
+  document.getElementById('card-question').textContent = card.question;
+  document.getElementById('card-answer').innerHTML = card.answer;
+  const diffTag = document.getElementById('diff-tag');
+  const diffMap = { easy: ['fácil', 'easy'], medium: ['medio', 'medium'], hard: ['difícil', 'hard'] };
+  const [label, cls] = diffMap[card.difficulty] || ['', 'easy'];
+  diffTag.textContent = label; diffTag.className = 'diff-tag ' + cls;
+  const clinicalNote = document.getElementById('clinical-note');
+  if (card.clinical) { clinicalNote.style.display = 'flex'; document.getElementById('clinical-text').textContent = card.clinical; }
+  else { clinicalNote.style.display = 'none'; }
+  const total = deck.length;
+  document.getElementById('current-num').textContent = currentIndex + 1;
+  document.getElementById('total-num').textContent = total;
+  document.getElementById('nav-index').textContent = `${currentIndex + 1} / ${total}`;
+  document.getElementById('progress-fill').style.width = ((currentIndex + 1) / total * 100) + '%';
+  document.getElementById('remaining-count').textContent = total - currentIndex;
+  document.getElementById('prev-btn').disabled = currentIndex === 0;
+  document.getElementById('next-btn').disabled = currentIndex === total - 1;
+  area.style.animation = 'none';
+  requestAnimationFrame(() => { area.style.animation = 'cardIn 0.3s ease'; });
+}
+function flipCard() {
+  if (!isFlipped) {
+    document.getElementById('card-front').classList.remove('active');
+    document.getElementById('card-back').classList.add('active');
+    document.getElementById('answer-actions').classList.add('visible');
+    document.getElementById('flip-btn').style.display = 'none';
+    isFlipped = true;
+  }
+}
+function markCard(result) {
+  scores[result]++;
+  document.getElementById('score-good').textContent = scores.good;
+  document.getElementById('score-ok').textContent = scores.ok;
+  document.getElementById('score-bad').textContent = scores.bad;
+  if (currentIndex < deck.length - 1) { currentIndex++; renderCard(); } else { showCompletion(); }
+}
+function nextCard() { if (currentIndex < deck.length - 1) { currentIndex++; renderCard(); } }
+function prevCard() { if (currentIndex > 0) { currentIndex--; renderCard(); } }
+function filterCards(cat, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  deck = (cat === 'all') ? [...allCards] : allCards.filter(c => c.category === cat);
+  currentIndex = 0; scores = { good: 0, ok: 0, bad: 0 };
+  document.getElementById('score-good').textContent = 0;
+  document.getElementById('score-ok').textContent = 0;
+  document.getElementById('score-bad').textContent = 0;
+  document.getElementById('total-count').textContent = deck.length;
+  document.getElementById('remaining-count').textContent = deck.length;
+  document.getElementById('completion-screen').classList.remove('visible');
+  document.getElementById('main-view').style.display = 'block';
+  renderCard();
+}
+function shuffleCards() {
+  for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; }
+  currentIndex = 0; renderCard();
+}
+function showCompletion() {
+  document.getElementById('main-view').style.display = 'none';
+  document.getElementById('completion-screen').classList.add('visible');
+  document.getElementById('final-good').textContent = scores.good;
+  document.getElementById('final-ok').textContent = scores.ok;
+  document.getElementById('final-bad').textContent = scores.bad;
+  const mail = localStorage.getItem('melbako_user');
+  if (mail) {
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ accion: 'progreso', mail: mail, tema: TEMA, good: scores.good, ok: scores.ok, bad: scores.bad })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok) {
+        document.getElementById('result-emoji').textContent = data.emoji;
+        document.getElementById('result-mensaje').textContent = data.mensaje;
+        if (data.anterior) {
+          document.getElementById('comparacion').style.display = 'block';
+          document.getElementById('pct-anterior').textContent = data.anterior.pct + '%';
+          document.getElementById('pct-actual').textContent = data.pct + '%';
+        }
+      }
+    })
+    .catch(() => {});
+  }
+}
+function restartDeck() {
+  deck = [...allCards]; currentIndex = 0; scores = { good: 0, ok: 0, bad: 0 };
+  document.getElementById('score-good').textContent = 0;
+  document.getElementById('score-ok').textContent = 0;
+  document.getElementById('score-bad').textContent = 0;
+  document.getElementById('completion-screen').classList.remove('visible');
+  document.getElementById('main-view').style.display = 'block';
+  renderCard();
+}
+renderCard();
+</script>
+</body>
+</html>

@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Melbako · Proteínas 1</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a; --surface: #111827; --surface2: #1a2235; --border: #1e3a5f;
+    --accent: #00d4ff; --accent2: #7c3aed; --green: #10b981; --red: #ef4444;
+    --yellow: #f59e0b; --text: #e2e8f0; --muted: #64748b;
+    --card-front: #0f1c2e; --card-back: #0d1f1a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
+  body::before { content: ''; position: fixed; inset: 0;
+    background-image: linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px; pointer-events: none; z-index: 0; }
+  .container { max-width: 900px; margin: 0 auto; padding: 0 20px; position: relative; z-index: 1; }
+  header { padding: 32px 0 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo-mark { width: 40px; height: 40px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 14px; color: white; letter-spacing: -0.5px; }
+  .logo-text { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 18px; color: white; line-height: 1.1; }
+  .logo-text span { display: block; font-size: 11px; font-weight: 400; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; font-family: 'DM Mono', monospace; }
+  .topic-badge { background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.25); color: var(--accent); padding: 6px 14px; border-radius: 20px; font-size: 12px; font-family: 'DM Mono', monospace; letter-spacing: 0.05em; }
+  .filter-bar { display: flex; gap: 8px; margin-bottom: 28px; flex-wrap: wrap; }
+  .filter-btn { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); font-size: 13px; cursor: pointer; transition: all 0.2s; font-family: 'DM Sans', sans-serif; }
+  .filter-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .filter-btn.active { background: rgba(0,212,255,0.12); border-color: var(--accent); color: var(--accent); }
+  .progress-section { margin-bottom: 32px; }
+  .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .progress-label { font-size: 13px; color: var(--muted); font-family: 'DM Mono', monospace; }
+  .progress-count { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 22px; color: white; }
+  .progress-count span { color: var(--muted); font-size: 15px; }
+  .progress-track { height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 2px; transition: width 0.4s ease; }
+  .score-row { display: flex; gap: 16px; margin-top: 12px; }
+  .score-pill { display: flex; align-items: center; gap: 6px; font-size: 12px; font-family: 'DM Mono', monospace; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot.green { background: var(--green); } .dot.red { background: var(--red); } .dot.yellow { background: var(--yellow); }
+  .card-area { margin-bottom: 28px; cursor: pointer; }
+  .card { width: 100%; min-height: 320px; }
+  .card-face { display: none; flex-direction: column; justify-content: center; border-radius: 24px; padding: 48px 52px; min-height: 320px; }
+  .card-face.active { display: flex; }
+  .card-front { background: var(--card-front); border: 1px solid var(--border); position: relative; overflow: hidden; }
+  .card-front::before { content: ''; position: absolute; top: -60px; right: -60px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(0,212,255,0.08) 0%, transparent 70%); pointer-events: none; }
+  .card-back { background: var(--card-back); border: 1px solid rgba(16,185,129,0.3); overflow: hidden; }
+  .card-back::before { content: ''; position: absolute; bottom: -60px; left: -60px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(16,185,129,0.06) 0%, transparent 70%); pointer-events: none; }
+  .card-category { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+  .card-category::before { content: ''; width: 20px; height: 1px; background: var(--accent); }
+  .card-back .card-category { color: var(--green); } .card-back .card-category::before { background: var(--green); }
+  .card-question { font-family: 'Syne', sans-serif; font-weight: 600; font-size: clamp(18px, 3vw, 24px); line-height: 1.4; color: white; margin-bottom: 20px; }
+  .card-hint { font-size: 13px; color: var(--muted); margin-top: auto; display: flex; align-items: center; gap: 6px; }
+  .card-hint svg { opacity: 0.5; }
+  .card-answer { font-size: 16px; line-height: 1.7; color: #c8e6c9; margin-bottom: 16px; }
+  .card-answer strong { color: var(--green); }
+  .clinical-note { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); border-radius: 10px; padding: 12px 16px; font-size: 13px; color: #fcd34d; margin-top: 16px; display: flex; gap: 10px; align-items: flex-start; }
+  .clinical-note-icon { flex-shrink: 0; margin-top: 1px; }
+  .action-row { display: flex; gap: 12px; justify-content: center; margin-bottom: 32px; flex-wrap: wrap; }
+  .btn { padding: 13px 28px; border-radius: 12px; border: none; font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 15px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
+  .btn-ghost { background: var(--surface); border: 1px solid var(--border); color: var(--muted); }
+  .btn-ghost:hover { border-color: var(--muted); color: var(--text); }
+  .btn-bad { background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; } .btn-bad:hover { background: rgba(239,68,68,0.2); }
+  .btn-ok { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); color: #fcd34d; } .btn-ok:hover { background: rgba(245,158,11,0.2); }
+  .btn-good { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7; } .btn-good:hover { background: rgba(16,185,129,0.2); }
+  .answer-actions { display: none; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .answer-actions.visible { display: flex; }
+  .nav-row { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 48px; }
+  .nav-btn { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-size: 18px; }
+  .nav-btn:hover { border-color: var(--accent); color: var(--accent); } .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .nav-index { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--muted); min-width: 80px; text-align: center; }
+  .shuffle-btn { display: flex; align-items: center; gap: 8px; margin: 0 auto 40px; padding: 10px 20px; background: transparent; border: 1px dashed var(--border); color: var(--muted); border-radius: 8px; cursor: pointer; font-size: 13px; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+  .shuffle-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+  .completion { display: none; text-align: center; padding: 60px 20px; }
+  .completion.visible { display: block; }
+  .completion-emoji { font-size: 64px; margin-bottom: 24px; }
+  .completion-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 32px; color: white; margin-bottom: 12px; }
+  .completion-sub { color: var(--muted); font-size: 16px; margin-bottom: 40px; }
+  .completion-stats { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px; }
+  .stat-box { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px 28px; min-width: 120px; }
+  .stat-num { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 36px; }
+  .stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .stat-green .stat-num { color: var(--green); } .stat-yellow .stat-num { color: var(--yellow); } .stat-red .stat-num { color: var(--red); }
+  .btn-restart { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; font-weight: 600; }
+  .btn-restart:hover { opacity: 0.9; transform: translateY(-1px); }
+  .diff-tag { position: absolute; top: 20px; right: 20px; font-family: 'DM Mono', monospace; font-size: 10px; padding: 4px 10px; border-radius: 4px; letter-spacing: 0.08em; }
+  .diff-tag.easy { background: rgba(16,185,129,0.15); color: var(--green); }
+  .diff-tag.medium { background: rgba(245,158,11,0.15); color: var(--yellow); }
+  .diff-tag.hard { background: rgba(239,68,68,0.15); color: #fca5a5; }
+  .deck-info { display: flex; gap: 20px; margin-bottom: 28px; flex-wrap: wrap; }
+  .deck-stat { display: flex; flex-direction: column; gap: 2px; }
+  .deck-stat-num { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 20px; color: white; }
+  .deck-stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; font-family: 'DM Mono', monospace; }
+  .divider { width: 1px; background: var(--border); height: 36px; }
+  @keyframes cardIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .card-area { animation: cardIn 0.3s ease; }
+  .flip-hint { text-align: center; font-size: 12px; color: var(--muted); margin-bottom: 16px; font-family: 'DM Mono', monospace; letter-spacing: 0.05em; }
+  #main-view { display: block; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo">
+      <div class="logo-mark">MB</div>
+      <div class="logo-text">
+        Melbako
+        <span>Bioquímica · Medicina</span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <a href="index.html" style="font-size:0.82rem;color:var(--muted);text-decoration:none;border:1px solid rgba(255,255,255,0.1);padding:0.4rem 0.9rem;border-radius:8px;transition:all 0.2s;font-family:'DM Sans',sans-serif;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='var(--muted)'">← Volver a temas</a>
+      <div class="topic-badge">Proteínas 1</div>
+    </div>
+  </header>
+
+  <div id="main-view">
+    <div class="deck-info">
+      <div class="deck-stat"><div class="deck-stat-num" id="total-count">24</div><div class="deck-stat-label">Flashcards</div></div>
+      <div class="divider"></div>
+      <div class="deck-stat"><div class="deck-stat-num">6</div><div class="deck-stat-label">Temas</div></div>
+      <div class="divider"></div>
+      <div class="deck-stat"><div class="deck-stat-num" id="remaining-count">24</div><div class="deck-stat-label">Restantes</div></div>
+    </div>
+
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterCards('all', this)">Todas</button>
+      <button class="filter-btn" onclick="filterCards('pool-balance', this)">Pool y Balance N</button>
+      <button class="filter-btn" onclick="filterCards('digestion', this)">Digestión y Absorción</button>
+      <button class="filter-btn" onclick="filterCards('aminoacidos', this)">Aminoácidos</button>
+      <button class="filter-btn" onclick="filterCards('remocion-nh3', this)">Remoción del NH₃</button>
+      <button class="filter-btn" onclick="filterCards('ciclo-urea', this)">Ciclo de la Urea</button>
+      <button class="filter-btn" onclick="filterCards('esqueletos', this)">Esqueletos Carbonados</button>
+    </div>
+
+    <div class="progress-section">
+      <div class="progress-header">
+        <div class="progress-label">PROGRESO DE REPASO</div>
+        <div class="progress-count"><span id="current-num">1</span> <span>/ <span id="total-num">24</span></span></div>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width: 4.2%"></div></div>
+      <div class="score-row">
+        <div class="score-pill"><div class="dot green"></div><span id="score-good">0</span> sabía</div>
+        <div class="score-pill"><div class="dot yellow"></div><span id="score-ok">0</span> más o menos</div>
+        <div class="score-pill"><div class="dot red"></div><span id="score-bad">0</span> no sabía</div>
+      </div>
+    </div>
+
+    <div class="flip-hint">↓ Hacé click para ver la respuesta</div>
+    <div class="card-area" onclick="flipCard()" id="card-area">
+      <div class="card" id="card">
+        <div class="card-face card-front active" id="card-front">
+          <div class="card-category" id="card-category"></div>
+          <div class="diff-tag" id="diff-tag"></div>
+          <div class="card-question" id="card-question"></div>
+          <div class="card-hint">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            Click para revelar
+          </div>
+        </div>
+        <div class="card-face card-back" id="card-back">
+          <div class="card-category">Respuesta</div>
+          <div class="card-answer" id="card-answer"></div>
+          <div class="clinical-note" id="clinical-note" style="display:none">
+            <span class="clinical-note-icon">⚕️</span>
+            <span id="clinical-text"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-row">
+      <button class="btn btn-ghost" onclick="flipCard()" id="flip-btn">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
+        Ver respuesta
+      </button>
+      <div class="answer-actions" id="answer-actions">
+        <button class="btn btn-bad" onclick="markCard('bad')">😅 No sabía</button>
+        <button class="btn btn-ok" onclick="markCard('ok')">🤔 Más o menos</button>
+        <button class="btn btn-good" onclick="markCard('good')">✅ Lo sabía</button>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="nav-btn" onclick="prevCard()" id="prev-btn">←</button>
+      <div class="nav-index" id="nav-index">1 / 24</div>
+      <button class="nav-btn" onclick="nextCard()" id="next-btn">→</button>
+    </div>
+
+    <button class="shuffle-btn" onclick="shuffleCards()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/>
+        <polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/>
+      </svg>
+      Mezclar cartas
+    </button>
+  </div>
+
+  <div class="completion" id="completion-screen">
+    <div class="completion-emoji" id="result-emoji">🎉</div>
+    <div class="completion-title">¡Mazo completado!</div>
+    <div class="completion-sub" id="result-mensaje">Terminaste de repasar todas las flashcards</div>
+    <div class="completion-stats">
+      <div class="stat-box stat-green"><div class="stat-num" id="final-good">0</div><div class="stat-label">Lo sabía</div></div>
+      <div class="stat-box stat-yellow"><div class="stat-num" id="final-ok">0</div><div class="stat-label">Más o menos</div></div>
+      <div class="stat-box stat-red"><div class="stat-num" id="final-bad">0</div><div class="stat-label">No sabía</div></div>
+    </div>
+    <div id="comparacion" style="display:none;margin:16px 0;padding:14px 20px;background:rgba(255,255,255,0.04);border-radius:12px;font-size:0.85rem;color:#888;text-align:center;">
+      Intento anterior: <span id="pct-anterior" style="color:#ccc;font-weight:600;"></span> → Este intento: <span id="pct-actual" style="color:#00d4ff;font-weight:600;"></span>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:8px;">
+      <button class="btn btn-restart" onclick="restartDeck()">↺ Reintentar</button>
+      <a href="index.html" style="display:inline-flex;align-items:center;padding:0 20px;height:44px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);color:#aaa;font-family:'DM Sans',sans-serif;font-size:0.9rem;text-decoration:none;">← Volver a temas</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const allCards = [
+  {
+    "id": 1,
+    "category": "pool-balance",
+    "categoryLabel": "Pool y Balance N",
+    "difficulty": "easy",
+    "question": "¿Por qué se habla de un \"pool\" de aminoácidos y de qué rutas se abastece?",
+    "answer": "Porque los aminoácidos <strong>no se almacenan</strong>: existen como un conjunto de Aa libres en la célula, sangre y líquido extracelular. Este pool se abastece de la <strong>degradación de proteínas</strong>, los <strong>aminoácidos de la dieta</strong> y la <strong>síntesis de Aa no esenciales</strong>.",
+    "clinical": null
+  },
+  {
+    "id": 2,
+    "category": "pool-balance",
+    "categoryLabel": "Pool y Balance N",
+    "difficulty": "medium",
+    "question": "¿Para qué se utiliza el pool de aminoácidos (rutas que lo consumen)?",
+    "answer": "Para la <strong>síntesis de proteínas de novo</strong> y de compuestos nitrogenados: <strong>porfirinas, creatinina, neurotransmisores, purinas y pirimidinas</strong>. Además, el <strong>esqueleto carbonado</strong> puede usarse para sintetizar glucosa, cuerpos cetónicos o ácidos grasos.",
+    "clinical": null
+  },
+  {
+    "id": 3,
+    "category": "pool-balance",
+    "categoryLabel": "Pool y Balance N",
+    "difficulty": "medium",
+    "question": "¿Qué es el balance nitrogenado y cuánto vale en una persona bien alimentada?",
+    "answer": "Es el <strong>nitrógeno incorporado por la dieta menos el nitrógeno eliminado</strong> (urea, heces, descamación de piel y tegumentos). En una persona bien alimentada es <strong>≈ 0</strong> (equilibrado).",
+    "clinical": null
+  },
+  {
+    "id": 4,
+    "category": "pool-balance",
+    "categoryLabel": "Pool y Balance N",
+    "difficulty": "hard",
+    "question": "¿En qué situaciones se da un balance nitrogenado negativo y en cuáles uno positivo?",
+    "answer": "<strong>Negativo</strong> (se elimina más N del que se incorpora): inanición, desnutrición proteica, senectud, fiebre severa, DBT no controlada, neoplasias avanzadas, post-quirúrgico, traumatismos, quemaduras extensas y sepsis. <strong>Positivo</strong> (se retiene N): niñez (crecimiento), embarazo y período post-inanición.",
+    "clinical": "Clínica: un balance nitrogenado negativo sostenido es marcador de catabolismo proteico (pérdida de masa muscular) en pacientes críticos, quemados o sépticos, y orienta el soporte nutricional."
+  },
+  {
+    "id": 5,
+    "category": "digestion",
+    "categoryLabel": "Digestión y Absorción",
+    "difficulty": "medium",
+    "question": "¿Cómo comienza la digestión de proteínas en el estómago?",
+    "answer": "Las <strong>células parietales</strong> secretan <strong>HCl</strong>, que baja el pH y <strong>desnaturaliza</strong> las proteínas, facilitando su proteólisis. El bajo pH activa el zimógeno <strong>pepsinógeno</strong> a <strong>pepsina</strong>, que es <strong>autocatalítica</strong> (la pepsina genera más pepsina).",
+    "clinical": null
+  },
+  {
+    "id": 6,
+    "category": "digestion",
+    "categoryLabel": "Digestión y Absorción",
+    "difficulty": "medium",
+    "question": "Cuando el bolo ácido llega al duodeno, ¿qué dos hormonas se secretan y qué hace cada una?",
+    "answer": "<strong>Colecistoquinina (CCK)</strong>: baja la motilidad, estimula al páncreas a secretar enzimas pancreáticas y a la vesícula biliar a liberar bilis. <strong>Secretina</strong>: estimula la secreción de <strong>HCO₃⁻</strong> para alcalinizar el bolo.",
+    "clinical": null
+  },
+  {
+    "id": 7,
+    "category": "digestion",
+    "categoryLabel": "Digestión y Absorción",
+    "difficulty": "hard",
+    "question": "¿Cómo se activa la tripsina y qué papel cumple en la cascada de zimógenos pancreáticos?",
+    "answer": "El <strong>tripsinógeno</strong> pasa a <strong>tripsina</strong> por la <strong>enteropeptidasa</strong> (enteroquinasa) de las microvellosidades intestinales. Luego la tripsina activa a los demás zimógenos: quimotripsinógeno → quimotripsina, proelastasa → elastasa y procarboxipeptidasas → carboxipeptidasas.",
+    "clinical": null
+  },
+  {
+    "id": 8,
+    "category": "digestion",
+    "categoryLabel": "Digestión y Absorción",
+    "difficulty": "hard",
+    "question": "¿Hacia qué residuos cortan tripsina y quimotripsina?",
+    "answer": "Son proteasas <strong>específicas</strong> (no cortan al azar). La <strong>tripsina</strong> corta hacia el carboxilo terminal de <strong>arginina y lisina</strong> (básicos). La <strong>quimotripsina</strong> corta hacia el carboxilo terminal de <strong>fenilalanina y tirosina</strong> (aromáticos).",
+    "clinical": null
+  },
+  {
+    "id": 9,
+    "category": "digestion",
+    "categoryLabel": "Digestión y Absorción",
+    "difficulty": "easy",
+    "question": "¿Qué es el valor biológico de una proteína y cuáles son las de mayor valor?",
+    "answer": "Es la <strong>proporción de aminoácidos esenciales</strong> que contiene una proteína. Las de <strong>mayor valor biológico son las de origen animal</strong>.",
+    "clinical": null
+  },
+  {
+    "id": 10,
+    "category": "digestion",
+    "categoryLabel": "Digestión y Absorción",
+    "difficulty": "hard",
+    "question": "¿Cómo se absorben los aminoácidos en el enterocito y qué características tiene ese transporte?",
+    "answer": "Por <strong>cotransporte con Na⁺</strong> (transporte activo secundario): la bomba <strong>Na⁺/K⁺ ATPasa</strong> mantiene el Na⁺ alto afuera y su gradiente arrastra al Aa hacia adentro. Es <strong>estereoespecífico</strong> (solo L-aminoácidos), <strong>saturable</strong> y hay <strong>familias de transportadores</strong> según el tipo de Aa.",
+    "clinical": null
+  },
+  {
+    "id": 11,
+    "category": "digestion",
+    "categoryLabel": "Digestión y Absorción",
+    "difficulty": "hard",
+    "question": "¿En qué consiste el ciclo del γ-glutamilo y cuál es su rol principal?",
+    "answer": "La <strong>γ-glutamil transpeptidasa</strong> (membrana de células intestinales y renales) une el Aa al <strong>glutatión</strong> (formado por glicina, cisteína y glutamato) para transportarlo al interior celular. Dentro, la 5-oxoprolinasa libera el Aa y se regenera el glutatión con gasto de ATP. Su <strong>rol principal es la síntesis de glutatión</strong> más que el transporte de Aa.",
+    "clinical": null
+  },
+  {
+    "id": 12,
+    "category": "aminoacidos",
+    "categoryLabel": "Aminoácidos",
+    "difficulty": "medium",
+    "question": "¿Cuáles son los aminoácidos esenciales?",
+    "answer": "<strong>Isoleucina, Lisina, Metionina, Fenilalanina, Treonina, Triptófano, Valina</strong>, más <strong>Histidina</strong> (esencial en niñxs) y <strong>Arginina</strong> (se sintetiza, pero casi toda se degrada para formar urea, por lo que se considera esencial).",
+    "clinical": null
+  },
+  {
+    "id": 13,
+    "category": "aminoacidos",
+    "categoryLabel": "Aminoácidos",
+    "difficulty": "medium",
+    "question": "¿Qué precursores y familias dan origen a los aminoácidos no esenciales?",
+    "answer": "<strong>Aspartato</strong> (de oxalacetato) → asparagina, metionina, treonina, lisina. <strong>Glutamato</strong> (de α-cetoglutarato) → glutamina, prolina, arginina. <strong>Piruvato</strong> → alanina y, a partir de ella, valina, leucina, isoleucina. Aa aromáticos (triptófano, fenilalanina, tirosina) → eritrosa-4-P. Histidina → ribosa-5-fosfato.",
+    "clinical": null
+  },
+  {
+    "id": 14,
+    "category": "aminoacidos",
+    "categoryLabel": "Aminoácidos",
+    "difficulty": "easy",
+    "question": "En el estado post-prandial, ¿qué destino tienen los aminoácidos en el hígado?",
+    "answer": "Llegan por la <strong>vena porta</strong> y se usan para sintetizar <strong>proteínas hepáticas, plasmáticas</strong> o de exportación, y compuestos nitrogenados. Como <strong>no se almacenan</strong>, el exceso se oxida para energía o se convierte en <strong>ácidos grasos (TAG → VLDL)</strong> o en <strong>glucosa (glucógeno)</strong>.",
+    "clinical": null
+  },
+  {
+    "id": 15,
+    "category": "aminoacidos",
+    "categoryLabel": "Aminoácidos",
+    "difficulty": "medium",
+    "question": "¿Cuáles son las tres situaciones en las que se produce degradación oxidativa de aminoácidos?",
+    "answer": "1) Durante el <strong>recambio proteico normal</strong>, cuando los Aa liberados no se reutilizan. 2) Con <strong>dieta rica en proteínas</strong>, cuando la ingesta de Aa excede las necesidades. 3) En <strong>ayuno prolongado o DBT descompensada</strong>, cuando los HC no se usan bien y las proteínas se queman como combustible.",
+    "clinical": null
+  },
+  {
+    "id": 16,
+    "category": "remocion-nh3",
+    "categoryLabel": "Remoción del NH₃",
+    "difficulty": "medium",
+    "question": "¿Qué es la transaminación y qué características tiene?",
+    "answer": "Es el pasaje de un grupo amino a un <strong>α-cetoácido</strong>, formando <strong>glutamato</strong> y un nuevo α-cetoácido. Es <strong>reversible</strong> (Keq ≈ 1, ΔG′ ≈ 0), <strong>atóxica</strong> (no libera NH₄⁺), canaliza el flujo de amonio y usa <strong>PLP (piridoxal-fosfato, derivado de vitamina B6)</strong> como grupo prostético.",
+    "clinical": null
+  },
+  {
+    "id": 17,
+    "category": "remocion-nh3",
+    "categoryLabel": "Remoción del NH₃",
+    "difficulty": "hard",
+    "question": "¿Qué reacciones catalizan la ALT (TGP) y la AST (TGO)?",
+    "answer": "<strong>ALT/TGP</strong>: Alanina + α-cetoglutarato → piruvato + glutamato. <strong>AST/TGO</strong>: Aspartato + α-cetoglutarato → oxalacetato + glutamato. La función es que el <strong>glutamato recoja el NH₄⁺</strong> de los tejidos extrahepáticos.",
+    "clinical": "Clínica: ALT y AST son las transaminasas hepáticas que se dosan en sangre; su elevación indica daño hepatocelular (la ALT es más específica de hígado)."
+  },
+  {
+    "id": 18,
+    "category": "remocion-nh3",
+    "categoryLabel": "Remoción del NH₃",
+    "difficulty": "hard",
+    "question": "¿Qué tipos de desaminación oxidativa y no oxidativa existen?",
+    "answer": "Oxidativas: <strong>deshidrogenasas NAD-dependientes</strong> (reversible; desaminación con NAD⁺, síntesis con NADPH) y <strong>aminoácido-oxidasas FMN-dependientes</strong> (en peroxisomas). No oxidativas (eliminación de agua) por <strong>deshidratasas PLP-dependientes</strong>: actúan sobre <strong>serina, cisteína y treonina</strong>.",
+    "clinical": null
+  },
+  {
+    "id": 19,
+    "category": "remocion-nh3",
+    "categoryLabel": "Remoción del NH₃",
+    "difficulty": "medium",
+    "question": "¿Cómo transporta la glutamina el amonio hacia el hígado?",
+    "answer": "En tejidos extrahepáticos, la <strong>glutamina sintetasa</strong> une glutamato + NH₃ formando <strong>glutamina</strong> (con gasto de ATP), que viaja por sangre. En el hígado, la <strong>glutaminasa</strong> libera ese amonio; el glutamato se desamina y el NH₄⁺ liberado ingresa al ciclo de la urea.",
+    "clinical": null
+  },
+  {
+    "id": 20,
+    "category": "remocion-nh3",
+    "categoryLabel": "Remoción del NH₃",
+    "difficulty": "hard",
+    "question": "¿Cómo funciona el ciclo glucosa-alanina?",
+    "answer": "En el músculo, el glutamato (que recogió los grupos amino) se <strong>transamina con piruvato</strong> dando α-cetoglutarato y <strong>alanina</strong>, que transporta el amonio al hígado. Allí la alanina se transamina con α-cetoglutarato dando piruvato y glutamato; el glutamato se desamina (glutamato deshidrogenasa) liberando NH₄⁺ al ciclo de la urea, y el <strong>piruvato va a gluconeogénesis</strong>.",
+    "clinical": null
+  },
+  {
+    "id": 21,
+    "category": "ciclo-urea",
+    "categoryLabel": "Ciclo de la Urea",
+    "difficulty": "hard",
+    "question": "¿Cuáles son las 5 reacciones del ciclo de la urea?",
+    "answer": "1) <strong>Carbamoil fosfato</strong>: NH₄⁺ + HCO₃⁻ por la <strong>CPS I</strong> (matriz mitocondrial, 2 ATP). 2) <strong>Citrulina</strong>: carbamoil-P + ornitina por la ornitina transcarbamilasa. 3) <strong>Argininsuccinato</strong>: citrulina + aspartato por la argininsuccinato sintetasa (2 ATP, citosol). 4) <strong>Ruptura</strong>: argininsuccinato → fumarato + arginina (argininsuccinato liasa). 5) <strong>Hidrólisis</strong>: arginina → urea + ornitina (arginasa).",
+    "clinical": null
+  },
+  {
+    "id": 22,
+    "category": "ciclo-urea",
+    "categoryLabel": "Ciclo de la Urea",
+    "difficulty": "medium",
+    "question": "¿De dónde provienen los dos nitrógenos de la urea y cuál es el costo energético del ciclo?",
+    "answer": "Por cada urea se liberan dos amonios: uno entra como <strong>amonio libre</strong> (desaminación oxidativa del glutamato) y el otro lo aporta el <strong>aspartato</strong>. El consumo energético total es de <strong>4 ATP</strong>.",
+    "clinical": "Clínica: déficits enzimáticos del ciclo (p. ej. de ornitina transcarbamilasa) causan hiperamonemia con encefalopatía; el amonio es neurotóxico."
+  },
+  {
+    "id": 23,
+    "category": "ciclo-urea",
+    "categoryLabel": "Ciclo de la Urea",
+    "difficulty": "hard",
+    "question": "¿Cómo se regula el ciclo de la urea a corto y largo plazo?",
+    "answer": "<strong>Largo plazo</strong>: cambios en la velocidad de síntesis de las enzimas según la dieta/estado nutricional. <strong>Corto plazo</strong>: activación alostérica positiva de la <strong>CPS I por el N-acetilglutamato</strong>, cuyos niveles suben con acetil-CoA (energía suficiente) y glutamato (degradación de Aa activa).",
+    "clinical": null
+  },
+  {
+    "id": 24,
+    "category": "esqueletos",
+    "categoryLabel": "Esqueletos Carbonados",
+    "difficulty": "medium",
+    "question": "¿Cómo se clasifican los aminoácidos según el destino de su esqueleto carbonado y cuáles son exclusivamente cetogénicos?",
+    "answer": "<strong>Gluconeogénicos</strong>: dan intermediarios para síntesis de glucosa. <strong>Cetogénicos</strong>: dan intermediarios para cuerpos cetónicos. Solo la <strong>lisina y la leucina</strong> son exclusivamente cetogénicas. El esqueleto puede dar glucosa, acetil-CoA, cuerpos cetónicos u oxidarse a CO₂ y H₂O.",
+    "clinical": null
+  }
+];
+const TEMA = "proteinas-1";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzlYbSVscgP_lF5KzfsUcCT063DixFTfn5-0mgZvAxVoQm7qiKESlc8eKDn0Vz8agj8/exec";
+let deck = [...allCards];
+let currentIndex = 0, isFlipped = false;
+let scores = { good: 0, ok: 0, bad: 0 };
+
+function renderCard() {
+  const card = deck[currentIndex];
+  if (!card) return;
+  const area = document.getElementById('card-area');
+  isFlipped = false;
+  document.getElementById('card-front').classList.add('active');
+  document.getElementById('card-back').classList.remove('active');
+  document.getElementById('answer-actions').classList.remove('visible');
+  document.getElementById('flip-btn').style.display = '';
+  document.getElementById('card-category').textContent = card.categoryLabel;
+  document.getElementById('card-question').textContent = card.question;
+  document.getElementById('card-answer').innerHTML = card.answer;
+  const diffTag = document.getElementById('diff-tag');
+  const diffMap = { easy: ['fácil', 'easy'], medium: ['medio', 'medium'], hard: ['difícil', 'hard'] };
+  const [label, cls] = diffMap[card.difficulty] || ['', 'easy'];
+  diffTag.textContent = label; diffTag.className = 'diff-tag ' + cls;
+  const clinicalNote = document.getElementById('clinical-note');
+  if (card.clinical) { clinicalNote.style.display = 'flex'; document.getElementById('clinical-text').textContent = card.clinical; }
+  else { clinicalNote.style.display = 'none'; }
+  const total = deck.length;
+  document.getElementById('current-num').textContent = currentIndex + 1;
+  document.getElementById('total-num').textContent = total;
+  document.getElementById('nav-index').textContent = `${currentIndex + 1} / ${total}`;
+  document.getElementById('progress-fill').style.width = ((currentIndex + 1) / total * 100) + '%';
+  document.getElementById('remaining-count').textContent = total - currentIndex;
+  document.getElementById('prev-btn').disabled = currentIndex === 0;
+  document.getElementById('next-btn').disabled = currentIndex === total - 1;
+  area.style.animation = 'none';
+  requestAnimationFrame(() => { area.style.animation = 'cardIn 0.3s ease'; });
+}
+function flipCard() {
+  if (!isFlipped) {
+    document.getElementById('card-front').classList.remove('active');
+    document.getElementById('card-back').classList.add('active');
+    document.getElementById('answer-actions').classList.add('visible');
+    document.getElementById('flip-btn').style.display = 'none';
+    isFlipped = true;
+  }
+}
+function markCard(result) {
+  scores[result]++;
+  document.getElementById('score-good').textContent = scores.good;
+  document.getElementById('score-ok').textContent = scores.ok;
+  document.getElementById('score-bad').textContent = scores.bad;
+  if (currentIndex < deck.length - 1) { currentIndex++; renderCard(); } else { showCompletion(); }
+}
+function nextCard() { if (currentIndex < deck.length - 1) { currentIndex++; renderCard(); } }
+function prevCard() { if (currentIndex > 0) { currentIndex--; renderCard(); } }
+function filterCards(cat, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  deck = (cat === 'all') ? [...allCards] : allCards.filter(c => c.category === cat);
+  currentIndex = 0; scores = { good: 0, ok: 0, bad: 0 };
+  document.getElementById('score-good').textContent = 0;
+  document.getElementById('score-ok').textContent = 0;
+  document.getElementById('score-bad').textContent = 0;
+  document.getElementById('total-count').textContent = deck.length;
+  document.getElementById('remaining-count').textContent = deck.length;
+  document.getElementById('completion-screen').classList.remove('visible');
+  document.getElementById('main-view').style.display = 'block';
+  renderCard();
+}
+function shuffleCards() {
+  for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; }
+  currentIndex = 0; renderCard();
+}
+function showCompletion() {
+  document.getElementById('main-view').style.display = 'none';
+  document.getElementById('completion-screen').classList.add('visible');
+  document.getElementById('final-good').textContent = scores.good;
+  document.getElementById('final-ok').textContent = scores.ok;
+  document.getElementById('final-bad').textContent = scores.bad;
+  const mail = localStorage.getItem('melbako_user');
+  if (mail) {
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ accion: 'progreso', mail: mail, tema: TEMA, good: scores.good, ok: scores.ok, bad: scores.bad })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok) {
+        document.getElementById('result-emoji').textContent = data.emoji;
+        document.getElementById('result-mensaje').textContent = data.mensaje;
+        if (data.anterior) {
+          document.getElementById('comparacion').style.display = 'block';
+          document.getElementById('pct-anterior').textContent = data.anterior.pct + '%';
+          document.getElementById('pct-actual').textContent = data.pct + '%';
+        }
+      }
+    })
+    .catch(() => {});
+  }
+}
+function restartDeck() {
+  deck = [...allCards]; currentIndex = 0; scores = { good: 0, ok: 0, bad: 0 };
+  document.getElementById('score-good').textContent = 0;
+  document.getElementById('score-ok').textContent = 0;
+  document.getElementById('score-bad').textContent = 0;
+  document.getElementById('completion-screen').classList.remove('visible');
+  document.getElementById('main-view').style.display = 'block';
+  renderCard();
+}
+renderCard();
+</script>
+</body>
+</html>

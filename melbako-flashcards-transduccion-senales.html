@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Melbako · Transducción de Señales</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a; --surface: #111827; --surface2: #1a2235; --border: #1e3a5f;
+    --accent: #00d4ff; --accent2: #7c3aed; --green: #10b981; --red: #ef4444;
+    --yellow: #f59e0b; --text: #e2e8f0; --muted: #64748b;
+    --card-front: #0f1c2e; --card-back: #0d1f1a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
+  body::before { content: ''; position: fixed; inset: 0;
+    background-image: linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px; pointer-events: none; z-index: 0; }
+  .container { max-width: 900px; margin: 0 auto; padding: 0 20px; position: relative; z-index: 1; }
+  header { padding: 32px 0 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo-mark { width: 40px; height: 40px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 14px; color: white; letter-spacing: -0.5px; }
+  .logo-text { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 18px; color: white; line-height: 1.1; }
+  .logo-text span { display: block; font-size: 11px; font-weight: 400; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; font-family: 'DM Mono', monospace; }
+  .topic-badge { background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.25); color: var(--accent); padding: 6px 14px; border-radius: 20px; font-size: 12px; font-family: 'DM Mono', monospace; letter-spacing: 0.05em; }
+  .filter-bar { display: flex; gap: 8px; margin-bottom: 28px; flex-wrap: wrap; }
+  .filter-btn { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); font-size: 13px; cursor: pointer; transition: all 0.2s; font-family: 'DM Sans', sans-serif; }
+  .filter-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .filter-btn.active { background: rgba(0,212,255,0.12); border-color: var(--accent); color: var(--accent); }
+  .progress-section { margin-bottom: 32px; }
+  .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .progress-label { font-size: 13px; color: var(--muted); font-family: 'DM Mono', monospace; }
+  .progress-count { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 22px; color: white; }
+  .progress-count span { color: var(--muted); font-size: 15px; }
+  .progress-track { height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 2px; transition: width 0.4s ease; }
+  .score-row { display: flex; gap: 16px; margin-top: 12px; }
+  .score-pill { display: flex; align-items: center; gap: 6px; font-size: 12px; font-family: 'DM Mono', monospace; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot.green { background: var(--green); } .dot.red { background: var(--red); } .dot.yellow { background: var(--yellow); }
+  .card-area { margin-bottom: 28px; cursor: pointer; }
+  .card { width: 100%; min-height: 320px; }
+  .card-face { display: none; flex-direction: column; justify-content: center; border-radius: 24px; padding: 48px 52px; min-height: 320px; }
+  .card-face.active { display: flex; }
+  .card-front { background: var(--card-front); border: 1px solid var(--border); position: relative; overflow: hidden; }
+  .card-front::before { content: ''; position: absolute; top: -60px; right: -60px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(0,212,255,0.08) 0%, transparent 70%); pointer-events: none; }
+  .card-back { background: var(--card-back); border: 1px solid rgba(16,185,129,0.3); overflow: hidden; }
+  .card-back::before { content: ''; position: absolute; bottom: -60px; left: -60px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(16,185,129,0.06) 0%, transparent 70%); pointer-events: none; }
+  .card-category { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+  .card-category::before { content: ''; width: 20px; height: 1px; background: var(--accent); }
+  .card-back .card-category { color: var(--green); } .card-back .card-category::before { background: var(--green); }
+  .card-question { font-family: 'Syne', sans-serif; font-weight: 600; font-size: clamp(18px, 3vw, 24px); line-height: 1.4; color: white; margin-bottom: 20px; }
+  .card-hint { font-size: 13px; color: var(--muted); margin-top: auto; display: flex; align-items: center; gap: 6px; }
+  .card-hint svg { opacity: 0.5; }
+  .card-answer { font-size: 16px; line-height: 1.7; color: #c8e6c9; margin-bottom: 16px; }
+  .card-answer strong { color: var(--green); }
+  .clinical-note { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); border-radius: 10px; padding: 12px 16px; font-size: 13px; color: #fcd34d; margin-top: 16px; display: flex; gap: 10px; align-items: flex-start; }
+  .clinical-note-icon { flex-shrink: 0; margin-top: 1px; }
+  .action-row { display: flex; gap: 12px; justify-content: center; margin-bottom: 32px; flex-wrap: wrap; }
+  .btn { padding: 13px 28px; border-radius: 12px; border: none; font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 15px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
+  .btn-ghost { background: var(--surface); border: 1px solid var(--border); color: var(--muted); }
+  .btn-ghost:hover { border-color: var(--muted); color: var(--text); }
+  .btn-bad { background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; } .btn-bad:hover { background: rgba(239,68,68,0.2); }
+  .btn-ok { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); color: #fcd34d; } .btn-ok:hover { background: rgba(245,158,11,0.2); }
+  .btn-good { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7; } .btn-good:hover { background: rgba(16,185,129,0.2); }
+  .answer-actions { display: none; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .answer-actions.visible { display: flex; }
+  .nav-row { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 48px; }
+  .nav-btn { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-size: 18px; }
+  .nav-btn:hover { border-color: var(--accent); color: var(--accent); } .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .nav-index { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--muted); min-width: 80px; text-align: center; }
+  .shuffle-btn { display: flex; align-items: center; gap: 8px; margin: 0 auto 40px; padding: 10px 20px; background: transparent; border: 1px dashed var(--border); color: var(--muted); border-radius: 8px; cursor: pointer; font-size: 13px; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+  .shuffle-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+  .completion { display: none; text-align: center; padding: 60px 20px; }
+  .completion.visible { display: block; }
+  .completion-emoji { font-size: 64px; margin-bottom: 24px; }
+  .completion-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 32px; color: white; margin-bottom: 12px; }
+  .completion-sub { color: var(--muted); font-size: 16px; margin-bottom: 40px; }
+  .completion-stats { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px; }
+  .stat-box { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px 28px; min-width: 120px; }
+  .stat-num { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 36px; }
+  .stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .stat-green .stat-num { color: var(--green); } .stat-yellow .stat-num { color: var(--yellow); } .stat-red .stat-num { color: var(--red); }
+  .btn-restart { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; font-weight: 600; }
+  .btn-restart:hover { opacity: 0.9; transform: translateY(-1px); }
+  .diff-tag { position: absolute; top: 20px; right: 20px; font-family: 'DM Mono', monospace; font-size: 10px; padding: 4px 10px; border-radius: 4px; letter-spacing: 0.08em; }
+  .diff-tag.easy { background: rgba(16,185,129,0.15); color: var(--green); }
+  .diff-tag.medium { background: rgba(245,158,11,0.15); color: var(--yellow); }
+  .diff-tag.hard { background: rgba(239,68,68,0.15); color: #fca5a5; }
+  .deck-info { display: flex; gap: 20px; margin-bottom: 28px; flex-wrap: wrap; }
+  .deck-stat { display: flex; flex-direction: column; gap: 2px; }
+  .deck-stat-num { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 20px; color: white; }
+  .deck-stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; font-family: 'DM Mono', monospace; }
+  .divider { width: 1px; background: var(--border); height: 36px; }
+  @keyframes cardIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .card-area { animation: cardIn 0.3s ease; }
+  .flip-hint { text-align: center; font-size: 12px; color: var(--muted); margin-bottom: 16px; font-family: 'DM Mono', monospace; letter-spacing: 0.05em; }
+  #main-view { display: block; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo">
+      <div class="logo-mark">MB</div>
+      <div class="logo-text">
+        Melbako
+        <span>Bioquímica · Medicina</span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <a href="index.html" style="font-size:0.82rem;color:var(--muted);text-decoration:none;border:1px solid rgba(255,255,255,0.1);padding:0.4rem 0.9rem;border-radius:8px;transition:all 0.2s;font-family:'DM Sans',sans-serif;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='var(--muted)'">← Volver a temas</a>
+      <div class="topic-badge">Transducción de Señales</div>
+    </div>
+  </header>
+
+  <div id="main-view">
+    <div class="deck-info">
+      <div class="deck-stat"><div class="deck-stat-num" id="total-count">28</div><div class="deck-stat-label">Flashcards</div></div>
+      <div class="divider"></div>
+      <div class="deck-stat"><div class="deck-stat-num">6</div><div class="deck-stat-label">Temas</div></div>
+      <div class="divider"></div>
+      <div class="deck-stat"><div class="deck-stat-num" id="remaining-count">28</div><div class="deck-stat-label">Restantes</div></div>
+    </div>
+
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterCards('all', this)">Todas</button>
+      <button class="filter-btn" onclick="filterCards('fundamentos', this)">Fundamentos y Mensajeros</button>
+      <button class="filter-btn" onclick="filterCards('receptores', this)">Tipos de Receptores</button>
+      <button class="filter-btn" onclick="filterCards('proteina-g', this)">Proteínas G</button>
+      <button class="filter-btn" onclick="filterCards('tirosin-kinasa', this)">Tirosin Kinasa e Insulina</button>
+      <button class="filter-btn" onclick="filterCards('apagado', this)">Apagado y Desensibilización</button>
+      <button class="filter-btn" onclick="filterCards('clinica', this)">Clínica y Otros Receptores</button>
+    </div>
+
+    <div class="progress-section">
+      <div class="progress-header">
+        <div class="progress-label">PROGRESO DE REPASO</div>
+        <div class="progress-count"><span id="current-num">1</span> <span>/ <span id="total-num">28</span></span></div>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width: 3.6%"></div></div>
+      <div class="score-row">
+        <div class="score-pill"><div class="dot green"></div><span id="score-good">0</span> sabía</div>
+        <div class="score-pill"><div class="dot yellow"></div><span id="score-ok">0</span> más o menos</div>
+        <div class="score-pill"><div class="dot red"></div><span id="score-bad">0</span> no sabía</div>
+      </div>
+    </div>
+
+    <div class="flip-hint">↓ Hacé click para ver la respuesta</div>
+    <div class="card-area" onclick="flipCard()" id="card-area">
+      <div class="card" id="card">
+        <div class="card-face card-front active" id="card-front">
+          <div class="card-category" id="card-category"></div>
+          <div class="diff-tag" id="diff-tag"></div>
+          <div class="card-question" id="card-question"></div>
+          <div class="card-hint">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            Click para revelar
+          </div>
+        </div>
+        <div class="card-face card-back" id="card-back">
+          <div class="card-category">Respuesta</div>
+          <div class="card-answer" id="card-answer"></div>
+          <div class="clinical-note" id="clinical-note" style="display:none">
+            <span class="clinical-note-icon">⚕️</span>
+            <span id="clinical-text"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-row">
+      <button class="btn btn-ghost" onclick="flipCard()" id="flip-btn">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
+        Ver respuesta
+      </button>
+      <div class="answer-actions" id="answer-actions">
+        <button class="btn btn-bad" onclick="markCard('bad')">😅 No sabía</button>
+        <button class="btn btn-ok" onclick="markCard('ok')">🤔 Más o menos</button>
+        <button class="btn btn-good" onclick="markCard('good')">✅ Lo sabía</button>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="nav-btn" onclick="prevCard()" id="prev-btn">←</button>
+      <div class="nav-index" id="nav-index">1 / 28</div>
+      <button class="nav-btn" onclick="nextCard()" id="next-btn">→</button>
+    </div>
+
+    <button class="shuffle-btn" onclick="shuffleCards()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/>
+        <polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/>
+      </svg>
+      Mezclar cartas
+    </button>
+  </div>
+
+  <div class="completion" id="completion-screen">
+    <div class="completion-emoji" id="result-emoji">🎉</div>
+    <div class="completion-title">¡Mazo completado!</div>
+    <div class="completion-sub" id="result-mensaje">Terminaste de repasar todas las flashcards</div>
+    <div class="completion-stats">
+      <div class="stat-box stat-green"><div class="stat-num" id="final-good">0</div><div class="stat-label">Lo sabía</div></div>
+      <div class="stat-box stat-yellow"><div class="stat-num" id="final-ok">0</div><div class="stat-label">Más o menos</div></div>
+      <div class="stat-box stat-red"><div class="stat-num" id="final-bad">0</div><div class="stat-label">No sabía</div></div>
+    </div>
+    <div id="comparacion" style="display:none;margin:16px 0;padding:14px 20px;background:rgba(255,255,255,0.04);border-radius:12px;font-size:0.85rem;color:#888;text-align:center;">
+      Intento anterior: <span id="pct-anterior" style="color:#ccc;font-weight:600;"></span> → Este intento: <span id="pct-actual" style="color:#00d4ff;font-weight:600;"></span>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:8px;">
+      <button class="btn btn-restart" onclick="restartDeck()">↺ Reintentar</button>
+      <a href="index.html" style="display:inline-flex;align-items:center;padding:0 20px;height:44px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);color:#aaa;font-family:'DM Sans',sans-serif;font-size:0.9rem;text-decoration:none;">← Volver a temas</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const allCards = [
+  {
+    "id": 1,
+    "category": "fundamentos",
+    "categoryLabel": "Fundamentos y Mensajeros",
+    "difficulty": "easy",
+    "question": "¿Qué es la transducción de señales?",
+    "answer": "Es el proceso por el cual una <strong>señal extracelular se convierte en una respuesta celular</strong>. La información que recibe la célula se transduce en una respuesta química, con el objetivo de que el organismo funcione como un \"todo\" frente a una situación metabólica específica.",
+    "clinical": null
+  },
+  {
+    "id": 2,
+    "category": "fundamentos",
+    "categoryLabel": "Fundamentos y Mensajeros",
+    "difficulty": "easy",
+    "question": "¿Qué es un primer mensajero y un segundo mensajero?",
+    "answer": "El <strong>primer mensajero</strong> es la molécula señalizadora producida en respuesta a un estímulo (ej: hormona o neurotransmisor). Los <strong>segundos mensajeros</strong> son moléculas pequeñas que se sintetizan en gran cantidad dentro de la célula y transducen la señal a las proteínas efectoras. Los más nombrados: <strong>AMPc, Ca²⁺, DAG e IP₃</strong>.",
+    "clinical": null
+  },
+  {
+    "id": 3,
+    "category": "fundamentos",
+    "categoryLabel": "Fundamentos y Mensajeros",
+    "difficulty": "medium",
+    "question": "¿Qué significan especificidad y amplificación en la señalización celular?",
+    "answer": "<strong>Especificidad</strong>: cada molécula señal se une a un receptor en particular. <strong>Amplificación</strong>: la unión de una sola molécula señal puede desencadenar la activación de varios efectores o la síntesis de muchos segundos mensajeros.",
+    "clinical": null
+  },
+  {
+    "id": 4,
+    "category": "fundamentos",
+    "categoryLabel": "Fundamentos y Mensajeros",
+    "difficulty": "medium",
+    "question": "Según la distancia, ¿qué tipos de señalización existen?",
+    "answer": "<strong>Endocrina</strong>: el mensajero llega a la célula diana lejana vía circulación sanguínea. <strong>Paracrina</strong>: la célula secretora está adyacente a la diana (distancia corta). <strong>Autocrina</strong>: la misma célula que libera la señal es la diana. <strong>Por contacto</strong>: célula en contacto real con otra, asociada a cambios del citoesqueleto.",
+    "clinical": null
+  },
+  {
+    "id": 5,
+    "category": "fundamentos",
+    "categoryLabel": "Fundamentos y Mensajeros",
+    "difficulty": "medium",
+    "question": "¿Cuál es la diferencia entre actividad quinasa y actividad fosfatasa?",
+    "answer": "Las <strong>quinasas/kinasas</strong> (ej: PKA, PKC) son enzimas que <strong>FOSFORILAN</strong> otras proteínas con gasto de ATP. Las <strong>fosfatasas</strong> (ej: glucosa-6-fosfatasa, PP1) <strong>DESFOSFORILAN</strong>. Una kinasa siempre fosforila, aunque eso active o inactive según la enzima blanco.",
+    "clinical": null
+  },
+  {
+    "id": 6,
+    "category": "receptores",
+    "categoryLabel": "Tipos de Receptores",
+    "difficulty": "medium",
+    "question": "¿Por qué una misma molécula sobre un mismo receptor puede causar efectos distintos? Ejemplo con acetilcolina.",
+    "answer": "Porque el efecto depende del <strong>tejido</strong> y de los transductores presentes. La <strong>acetilcolina</strong>: en miocito cardíaco disminuye frecuencia y fuerza (receptor muscarínico/proteína G); en glándulas salivales aumenta la secreción (muscarínico/proteína G); en miocito esquelético aumenta la contracción (receptor nicotínico).",
+    "clinical": null
+  },
+  {
+    "id": 7,
+    "category": "receptores",
+    "categoryLabel": "Tipos de Receptores",
+    "difficulty": "easy",
+    "question": "Según su localización, ¿cómo se clasifican los receptores y qué ligandos reconocen?",
+    "answer": "<strong>Receptores de membrana</strong>: insertos en la membrana plasmática con una porción extracelular; sus ligandos son <strong>hidrosolubles</strong> (no atraviesan la membrana). <strong>Receptores intracelulares</strong>: citosólicos o nucleares; sus ligandos son <strong>liposolubles</strong> y atraviesan las membranas.",
+    "clinical": null
+  },
+  {
+    "id": 8,
+    "category": "receptores",
+    "categoryLabel": "Tipos de Receptores",
+    "difficulty": "hard",
+    "question": "Clasificá los receptores según su actividad enzimática intrínseca.",
+    "answer": "<strong>Con actividad enzimática intrínseca</strong>: receptor tirosin kinasa y receptor guanosin kinasa (guanilil ciclasa). <strong>Sin actividad enzimática intrínseca</strong>: receptores acoplados a proteína G, canales iónicos activados por ligando, receptores de adhesión y receptores nucleares.",
+    "clinical": null
+  },
+  {
+    "id": 9,
+    "category": "receptores",
+    "categoryLabel": "Tipos de Receptores",
+    "difficulty": "medium",
+    "question": "¿Qué diferencia hay entre una respuesta celular rápida y una lenta?",
+    "answer": "<strong>Rápida</strong> (segundos a minutos): consiste en la <strong>alteración de proteínas ya existentes</strong>. <strong>Lenta</strong> (horas a días): consiste en la <strong>alteración de la síntesis de proteínas</strong> (cambios en la expresión génica).",
+    "clinical": null
+  },
+  {
+    "id": 10,
+    "category": "proteina-g",
+    "categoryLabel": "Proteínas G",
+    "difficulty": "medium",
+    "question": "¿Cómo está estructurada una proteína G y cuáles son sus tres tipos?",
+    "answer": "Es una proteína <strong>trimérica</strong> con tres subunidades: <strong>α, β y γ</strong>, siendo la <strong>α</strong> la que tiene la actividad enzimática. Hay tres tipos con funciones distintas: <strong>Gs, Gi y Gq</strong>.",
+    "clinical": null
+  },
+  {
+    "id": 11,
+    "category": "proteina-g",
+    "categoryLabel": "Proteínas G",
+    "difficulty": "hard",
+    "question": "¿Qué ocurre con la subunidad α cuando se activa una proteína G acoplada a su receptor?",
+    "answer": "Al unirse el ligando, la proteína G se estimula: la subunidad α intercambia <strong>GDP por GTP</strong> (forma activada) y se separa del dímero <strong>βγ</strong>, que queda unido al receptor. La α-GTP ejecuta su función efectora.",
+    "clinical": null
+  },
+  {
+    "id": 12,
+    "category": "proteina-g",
+    "categoryLabel": "Proteínas G",
+    "difficulty": "hard",
+    "question": "Describí la vía de una proteína Gs hasta la PKA. ¿Qué receptores son ejemplos?",
+    "answer": "La <strong>α-GTP de Gs</strong> activa la <strong>adenilato ciclasa</strong>, que forma <strong>AMPc</strong> a partir de ATP. El AMPc se une a las subunidades reguladoras de la <strong>PKA</strong> y la activa, permitiéndole fosforilar proteínas. Ejemplos: receptor β-adrenérgico y receptor de glucagón.",
+    "clinical": null
+  },
+  {
+    "id": 13,
+    "category": "proteina-g",
+    "categoryLabel": "Proteínas G",
+    "difficulty": "hard",
+    "question": "¿Cómo funciona la vía de la proteína Gq y qué segundos mensajeros genera?",
+    "answer": "La <strong>Gq α-GTP</strong> activa la <strong>fosfolipasa C (PLC)</strong>, que hidroliza el <strong>PIP₂</strong> en <strong>DAG</strong> e <strong>IP₃</strong>. El DAG activa la <strong>PKC</strong>; el IP₃ abre canales de Ca²⁺ del retículo endoplásmico hacia el citosol, y el Ca²⁺ activa proteínas de unión a calcio. Ejemplos: receptor α1-adrenérgico y muscarínico M1.",
+    "clinical": null
+  },
+  {
+    "id": 14,
+    "category": "proteina-g",
+    "categoryLabel": "Proteínas G",
+    "difficulty": "medium",
+    "question": "¿Qué hace la subunidad α de una proteína Gi al activarse?",
+    "answer": "La subunidad α de <strong>Gi inactiva a la adenilato ciclasa</strong>, lo que produce una <strong>disminución del AMPc</strong> y, en consecuencia, una menor activación de la PKA. Ejemplos: receptores α2-adrenérgicos y muscarínicos.",
+    "clinical": null
+  },
+  {
+    "id": 15,
+    "category": "proteina-g",
+    "categoryLabel": "Proteínas G",
+    "difficulty": "medium",
+    "question": "¿En qué consiste la actividad GTPasa intrínseca de la subunidad Gα?",
+    "answer": "La α-GTP activada <strong>hidroliza el GTP a GDP</strong> (pierde un fosfato), volviendo a su forma inactiva. Luego se <strong>re-trimeriza</strong> con las subunidades βγ y la proteína G inactiva queda junto al receptor hasta la llegada de un nuevo ligando. Es el mecanismo de autoapagado de la vía.",
+    "clinical": null
+  },
+  {
+    "id": 16,
+    "category": "tirosin-kinasa",
+    "categoryLabel": "Tirosin Kinasa e Insulina",
+    "difficulty": "medium",
+    "question": "¿Qué caracteriza a los receptores tirosin kinasa? Nombrá dos ejemplos.",
+    "answer": "Tienen <strong>actividad enzimática intrínseca</strong> (la enzima es parte del receptor, no una proteína anexa). Poseen 3 dominios: extracelular, de membrana y citoplasmático, y se relacionan con la <strong>supervivencia y división celular</strong>. Ejemplos: receptor del factor de crecimiento epidérmico (<strong>EGF</strong>) y <strong>receptor de insulina</strong>.",
+    "clinical": null
+  },
+  {
+    "id": 17,
+    "category": "tirosin-kinasa",
+    "categoryLabel": "Tirosin Kinasa e Insulina",
+    "difficulty": "hard",
+    "question": "¿Cómo se activa el receptor de EGF y en qué se diferencia del de insulina en estado basal?",
+    "answer": "El receptor de EGF está en la membrana como <strong>monómero</strong>; al unirse el ligando, los receptores se <strong>dimerizan y se autofosforilan</strong> mutuamente sus colas de Tyr. El <strong>receptor de insulina ya es un dímero</strong> en estado basal, pero no se activa hasta que se une el ligando.",
+    "clinical": null
+  },
+  {
+    "id": 18,
+    "category": "tirosin-kinasa",
+    "categoryLabel": "Tirosin Kinasa e Insulina",
+    "difficulty": "hard",
+    "question": "Describí los pasos de la vía de la insulina vía PI3K hasta PKB/Akt.",
+    "answer": "1) La insulina se une al receptor; 2) se autofosforilan las colas de tirosina; 3) se recluta y fosforila la proteína <strong>IRS</strong>; 4) IRS recluta la <strong>PI3K</strong>; 5) PI3K fosforila PIP₂ a <strong>PIP₃</strong>; 6) PIP₃ activa <strong>PDK1</strong>, que fosforila y activa <strong>PKB/Akt</strong>; 7) PKB/Akt fosforila proteínas blanco.",
+    "clinical": "Clínica: la insulina es un péptido, por eso su receptor es de membrana (tirosin kinasa). Esta vía es central en la captación de glucosa; su falla subyace a la resistencia a la insulina en la diabetes tipo 2."
+  },
+  {
+    "id": 19,
+    "category": "tirosin-kinasa",
+    "categoryLabel": "Tirosin Kinasa e Insulina",
+    "difficulty": "medium",
+    "question": "¿Cuál es la naturaleza química de la insulina y qué implica para su receptor?",
+    "answer": "La insulina es un <strong>péptido</strong> (hidrosoluble), por lo que <strong>no atraviesa la membrana</strong> y necesita un receptor de membrana. Su receptor es de tipo <strong>tirosin kinasa</strong>.",
+    "clinical": null
+  },
+  {
+    "id": 20,
+    "category": "tirosin-kinasa",
+    "categoryLabel": "Tirosin Kinasa e Insulina",
+    "difficulty": "hard",
+    "question": "¿Qué es la vía Grb2-Sos-Ras en la señalización de insulina y a qué tipo de respuesta lleva?",
+    "answer": "Tras fosforilarse el IRS, aparecen proteínas adaptadoras como <strong>Grb2</strong>, que reclutan al factor <strong>Sos</strong> (intercambia nucleótidos de guanina) sobre las proteínas G monoméricas <strong>Ras</strong>. Ras activada desencadena la cascada de kinasas <strong>MAPK</strong>, que lleva a la <strong>respuesta lenta</strong> por regulación de la expresión génica.",
+    "clinical": null
+  },
+  {
+    "id": 21,
+    "category": "tirosin-kinasa",
+    "categoryLabel": "Tirosin Kinasa e Insulina",
+    "difficulty": "medium",
+    "question": "¿Qué son el crosstalk y un ejemplo de respuesta rápida de la insulina?",
+    "answer": "El <strong>crosstalk</strong> (conversación cruzada) es cuando un receptor desencadena varias vías que se interrelacionan. Una respuesta rápida típica de la insulina es la <strong>movilización de vesículas con GLUT4</strong> hacia la membrana y la modulación covalente de enzimas que estimulan la síntesis de glucógeno.",
+    "clinical": null
+  },
+  {
+    "id": 22,
+    "category": "apagado",
+    "categoryLabel": "Apagado y Desensibilización",
+    "difficulty": "easy",
+    "question": "¿Cuál es la diferencia entre apagar y desensibilizar una señal?",
+    "answer": "<strong>Apagar</strong> es cortar el flujo de la señal (se corta la liberación del mensajero). <strong>Desensibilizar/adaptar</strong> es que el estímulo permanece, pero la célula es incapaz de detectarlo (generalmente porque se alteran sus receptores).",
+    "clinical": null
+  },
+  {
+    "id": 23,
+    "category": "apagado",
+    "categoryLabel": "Apagado y Desensibilización",
+    "difficulty": "medium",
+    "question": "¿Cómo se apaga la señal del AMPc dentro de la célula?",
+    "answer": "Por la <strong>fosfodiesterasa (PDE)</strong> de nucleótidos cíclicos, que hidroliza el AMPc a <strong>5'AMP</strong>, el cual ya no tiene función señalizadora para activar a la PKA. También puede apagarse disminuyendo la concentración del ligando por su vida media.",
+    "clinical": null
+  },
+  {
+    "id": 24,
+    "category": "apagado",
+    "categoryLabel": "Apagado y Desensibilización",
+    "difficulty": "hard",
+    "question": "Explicá la desensibilización del receptor β-adrenérgico por βARK y β-arrestina.",
+    "answer": "Ante presencia continua de adrenalina, una quinasa activada por PKA (<strong>βARK</strong>) fosforila el receptor β-adrenérgico, lo que recluta a la <strong>β-arrestina</strong>. Esta \"esconde\" los receptores secuestrándolos en vesículas hasta que baja el AMPc. Al descender la PKA, ya no se fosforila el receptor, no se recluta βarr y el receptor vuelve a la membrana.",
+    "clinical": null
+  },
+  {
+    "id": 25,
+    "category": "apagado",
+    "categoryLabel": "Apagado y Desensibilización",
+    "difficulty": "medium",
+    "question": "¿Cómo se apaga la señal de la vía tirosin kinasa de la insulina?",
+    "answer": "Por <strong>proteín fosfatasas</strong> que desfosforilan al receptor y a las proteínas blanco (incluida PKB). El <strong>PIP₃ se degrada a PIP₂</strong> por la enzima <strong>PTEN</strong> (reacción contraria a PI3K). En la vía Grb2 también actúa la actividad GTPasa intrínseca de Ras.",
+    "clinical": null
+  },
+  {
+    "id": 26,
+    "category": "clinica",
+    "categoryLabel": "Clínica y Otros Receptores",
+    "difficulty": "hard",
+    "question": "¿Cómo actúa la toxina colérica a nivel molecular y qué cuadro clínico produce?",
+    "answer": "Es una proteína que se une a la subunidad <strong>α-GTP</strong> y la <strong>ADP-ribosila</strong> (modificación covalente), aboliendo su actividad GTPasa. La α queda <strong>persistentemente activada</strong>, aumentando el AMPc en los enterocitos del duodeno. El AMPc activa PKA, que abre el canal de Cl⁻; salen Cl⁻ y Na⁺ a la luz intestinal arrastrando agua.",
+    "clinical": "Clínica: la salida masiva de agua produce diarrea acuosa intensa; si no se controla puede llevar a deshidratación grave y muerte."
+  },
+  {
+    "id": 27,
+    "category": "clinica",
+    "categoryLabel": "Clínica y Otros Receptores",
+    "difficulty": "medium",
+    "question": "¿Cómo funcionan los receptores con actividad guanilil ciclasa y la vía del óxido nítrico?",
+    "answer": "Transforman GTP en <strong>GMPc</strong>. Pueden estar anclados a membrana (receptor del factor natriurético atrial) o ser citoplasmáticos (receptor del óxido nítrico). El aumento de GMPc activa la <strong>PKG</strong>, que fosforila proteínas blanco. En músculo liso vascular, el ON activa la guanilil ciclasa, sube el GMPc y se produce <strong>vasodilatación</strong>.",
+    "clinical": "Clínica: el viagra (sildenafil) inhibe la fosfodiesterasa específica de GMPc, manteniendo elevado el GMPc, lo que aumenta la vasodilatación y la llegada de sangre al pene."
+  },
+  {
+    "id": 28,
+    "category": "clinica",
+    "categoryLabel": "Clínica y Otros Receptores",
+    "difficulty": "medium",
+    "question": "¿Cómo funciona un canal iónico activado por ligando? Ejemplo: receptor nicotínico de acetilcolina.",
+    "answer": "En estado basal el canal está cerrado (sin flujo de iones). Cuando se une la <strong>ACh</strong>, se genera un cambio conformacional que <strong>abre el canal</strong>, permitiendo la entrada de <strong>Na⁺ y Ca²⁺</strong> principalmente. Esto puede producir despolarización de la membrana y/o contracción muscular.",
+    "clinical": null
+  }
+];
+const TEMA = "transduccion-senales";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzlYbSVscgP_lF5KzfsUcCT063DixFTfn5-0mgZvAxVoQm7qiKESlc8eKDn0Vz8agj8/exec";
+let deck = [...allCards];
+let currentIndex = 0, isFlipped = false;
+let scores = { good: 0, ok: 0, bad: 0 };
+
+function renderCard() {
+  const card = deck[currentIndex];
+  if (!card) return;
+  const area = document.getElementById('card-area');
+  isFlipped = false;
+  document.getElementById('card-front').classList.add('active');
+  document.getElementById('card-back').classList.remove('active');
+  document.getElementById('answer-actions').classList.remove('visible');
+  document.getElementById('flip-btn').style.display = '';
+  document.getElementById('card-category').textContent = card.categoryLabel;
+  document.getElementById('card-question').textContent = card.question;
+  document.getElementById('card-answer').innerHTML = card.answer;
+  const diffTag = document.getElementById('diff-tag');
+  const diffMap = { easy: ['fácil', 'easy'], medium: ['medio', 'medium'], hard: ['difícil', 'hard'] };
+  const [label, cls] = diffMap[card.difficulty] || ['', 'easy'];
+  diffTag.textContent = label; diffTag.className = 'diff-tag ' + cls;
+  const clinicalNote = document.getElementById('clinical-note');
+  if (card.clinical) { clinicalNote.style.display = 'flex'; document.getElementById('clinical-text').textContent = card.clinical; }
+  else { clinicalNote.style.display = 'none'; }
+  const total = deck.length;
+  document.getElementById('current-num').textContent = currentIndex + 1;
+  document.getElementById('total-num').textContent = total;
+  document.getElementById('nav-index').textContent = `${currentIndex + 1} / ${total}`;
+  document.getElementById('progress-fill').style.width = ((currentIndex + 1) / total * 100) + '%';
+  document.getElementById('remaining-count').textContent = total - currentIndex;
+  document.getElementById('prev-btn').disabled = currentIndex === 0;
+  document.getElementById('next-btn').disabled = currentIndex === total - 1;
+  area.style.animation = 'none';
+  requestAnimationFrame(() => { area.style.animation = 'cardIn 0.3s ease'; });
+}
+function flipCard() {
+  if (!isFlipped) {
+    document.getElementById('card-front').classList.remove('active');
+    document.getElementById('card-back').classList.add('active');
+    document.getElementById('answer-actions').classList.add('visible');
+    document.getElementById('flip-btn').style.display = 'none';
+    isFlipped = true;
+  }
+}
+function markCard(result) {
+  scores[result]++;
+  document.getElementById('score-good').textContent = scores.good;
+  document.getElementById('score-ok').textContent = scores.ok;
+  document.getElementById('score-bad').textContent = scores.bad;
+  if (currentIndex < deck.length - 1) { currentIndex++; renderCard(); } else { showCompletion(); }
+}
+function nextCard() { if (currentIndex < deck.length - 1) { currentIndex++; renderCard(); } }
+function prevCard() { if (currentIndex > 0) { currentIndex--; renderCard(); } }
+function filterCards(cat, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  deck = (cat === 'all') ? [...allCards] : allCards.filter(c => c.category === cat);
+  currentIndex = 0; scores = { good: 0, ok: 0, bad: 0 };
+  document.getElementById('score-good').textContent = 0;
+  document.getElementById('score-ok').textContent = 0;
+  document.getElementById('score-bad').textContent = 0;
+  document.getElementById('total-count').textContent = deck.length;
+  document.getElementById('remaining-count').textContent = deck.length;
+  document.getElementById('completion-screen').classList.remove('visible');
+  document.getElementById('main-view').style.display = 'block';
+  renderCard();
+}
+function shuffleCards() {
+  for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; }
+  currentIndex = 0; renderCard();
+}
+function showCompletion() {
+  document.getElementById('main-view').style.display = 'none';
+  document.getElementById('completion-screen').classList.add('visible');
+  document.getElementById('final-good').textContent = scores.good;
+  document.getElementById('final-ok').textContent = scores.ok;
+  document.getElementById('final-bad').textContent = scores.bad;
+  const mail = localStorage.getItem('melbako_user');
+  if (mail) {
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ accion: 'progreso', mail: mail, tema: TEMA, good: scores.good, ok: scores.ok, bad: scores.bad })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok) {
+        document.getElementById('result-emoji').textContent = data.emoji;
+        document.getElementById('result-mensaje').textContent = data.mensaje;
+        if (data.anterior) {
+          document.getElementById('comparacion').style.display = 'block';
+          document.getElementById('pct-anterior').textContent = data.anterior.pct + '%';
+          document.getElementById('pct-actual').textContent = data.pct + '%';
+        }
+      }
+    })
+    .catch(() => {});
+  }
+}
+function restartDeck() {
+  deck = [...allCards]; currentIndex = 0; scores = { good: 0, ok: 0, bad: 0 };
+  document.getElementById('score-good').textContent = 0;
+  document.getElementById('score-ok').textContent = 0;
+  document.getElementById('score-bad').textContent = 0;
+  document.getElementById('completion-screen').classList.remove('visible');
+  document.getElementById('main-view').style.display = 'block';
+  renderCard();
+}
+renderCard();
+</script>
+</body>
+</html>

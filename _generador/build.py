@@ -1,0 +1,378 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Genera los HTML de flashcards Melbako (un mazo por JSON), usando el diseño
+actual del repo (sin flip 3D, con 'Volver a temas' y envío de progreso al
+Google Apps Script). Salida: melbako-flashcards-<slug>.html en la raíz del repo.
+
+Uso:  python3 _generador/build.py
+"""
+import json, os, glob
+
+GEN_DIR = os.path.dirname(os.path.abspath(__file__))
+REPO = os.path.dirname(GEN_DIR)            # raíz del repo
+DECKS_DIR = os.path.join(GEN_DIR, "decks")
+
+SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzlYbSVscgP_lF5KzfsUcCT063DixFTfn5-0mgZvAxVoQm7qiKESlc8eKDn0Vz8agj8/exec"
+
+FONTS = '<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">'
+
+STYLE = """
+  :root {
+    --bg: #0a0e1a; --surface: #111827; --surface2: #1a2235; --border: #1e3a5f;
+    --accent: #00d4ff; --accent2: #7c3aed; --green: #10b981; --red: #ef4444;
+    --yellow: #f59e0b; --text: #e2e8f0; --muted: #64748b;
+    --card-front: #0f1c2e; --card-back: #0d1f1a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
+  body::before { content: ''; position: fixed; inset: 0;
+    background-image: linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px; pointer-events: none; z-index: 0; }
+  .container { max-width: 900px; margin: 0 auto; padding: 0 20px; position: relative; z-index: 1; }
+  header { padding: 32px 0 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo-mark { width: 40px; height: 40px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 14px; color: white; letter-spacing: -0.5px; }
+  .logo-text { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 18px; color: white; line-height: 1.1; }
+  .logo-text span { display: block; font-size: 11px; font-weight: 400; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; font-family: 'DM Mono', monospace; }
+  .topic-badge { background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.25); color: var(--accent); padding: 6px 14px; border-radius: 20px; font-size: 12px; font-family: 'DM Mono', monospace; letter-spacing: 0.05em; }
+  .filter-bar { display: flex; gap: 8px; margin-bottom: 28px; flex-wrap: wrap; }
+  .filter-btn { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); font-size: 13px; cursor: pointer; transition: all 0.2s; font-family: 'DM Sans', sans-serif; }
+  .filter-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .filter-btn.active { background: rgba(0,212,255,0.12); border-color: var(--accent); color: var(--accent); }
+  .progress-section { margin-bottom: 32px; }
+  .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .progress-label { font-size: 13px; color: var(--muted); font-family: 'DM Mono', monospace; }
+  .progress-count { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 22px; color: white; }
+  .progress-count span { color: var(--muted); font-size: 15px; }
+  .progress-track { height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 2px; transition: width 0.4s ease; }
+  .score-row { display: flex; gap: 16px; margin-top: 12px; }
+  .score-pill { display: flex; align-items: center; gap: 6px; font-size: 12px; font-family: 'DM Mono', monospace; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot.green { background: var(--green); } .dot.red { background: var(--red); } .dot.yellow { background: var(--yellow); }
+  .card-area { margin-bottom: 28px; cursor: pointer; }
+  .card { width: 100%; min-height: 320px; }
+  .card-face { display: none; flex-direction: column; justify-content: center; border-radius: 24px; padding: 48px 52px; min-height: 320px; }
+  .card-face.active { display: flex; }
+  .card-front { background: var(--card-front); border: 1px solid var(--border); position: relative; overflow: hidden; }
+  .card-front::before { content: ''; position: absolute; top: -60px; right: -60px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(0,212,255,0.08) 0%, transparent 70%); pointer-events: none; }
+  .card-back { background: var(--card-back); border: 1px solid rgba(16,185,129,0.3); overflow: hidden; }
+  .card-back::before { content: ''; position: absolute; bottom: -60px; left: -60px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(16,185,129,0.06) 0%, transparent 70%); pointer-events: none; }
+  .card-category { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+  .card-category::before { content: ''; width: 20px; height: 1px; background: var(--accent); }
+  .card-back .card-category { color: var(--green); } .card-back .card-category::before { background: var(--green); }
+  .card-question { font-family: 'Syne', sans-serif; font-weight: 600; font-size: clamp(18px, 3vw, 24px); line-height: 1.4; color: white; margin-bottom: 20px; }
+  .card-hint { font-size: 13px; color: var(--muted); margin-top: auto; display: flex; align-items: center; gap: 6px; }
+  .card-hint svg { opacity: 0.5; }
+  .card-answer { font-size: 16px; line-height: 1.7; color: #c8e6c9; margin-bottom: 16px; }
+  .card-answer strong { color: var(--green); }
+  .clinical-note { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); border-radius: 10px; padding: 12px 16px; font-size: 13px; color: #fcd34d; margin-top: 16px; display: flex; gap: 10px; align-items: flex-start; }
+  .clinical-note-icon { flex-shrink: 0; margin-top: 1px; }
+  .action-row { display: flex; gap: 12px; justify-content: center; margin-bottom: 32px; flex-wrap: wrap; }
+  .btn { padding: 13px 28px; border-radius: 12px; border: none; font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 15px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
+  .btn-ghost { background: var(--surface); border: 1px solid var(--border); color: var(--muted); }
+  .btn-ghost:hover { border-color: var(--muted); color: var(--text); }
+  .btn-bad { background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; } .btn-bad:hover { background: rgba(239,68,68,0.2); }
+  .btn-ok { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); color: #fcd34d; } .btn-ok:hover { background: rgba(245,158,11,0.2); }
+  .btn-good { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7; } .btn-good:hover { background: rgba(16,185,129,0.2); }
+  .answer-actions { display: none; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .answer-actions.visible { display: flex; }
+  .nav-row { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 48px; }
+  .nav-btn { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-size: 18px; }
+  .nav-btn:hover { border-color: var(--accent); color: var(--accent); } .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .nav-index { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--muted); min-width: 80px; text-align: center; }
+  .shuffle-btn { display: flex; align-items: center; gap: 8px; margin: 0 auto 40px; padding: 10px 20px; background: transparent; border: 1px dashed var(--border); color: var(--muted); border-radius: 8px; cursor: pointer; font-size: 13px; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+  .shuffle-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+  .completion { display: none; text-align: center; padding: 60px 20px; }
+  .completion.visible { display: block; }
+  .completion-emoji { font-size: 64px; margin-bottom: 24px; }
+  .completion-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 32px; color: white; margin-bottom: 12px; }
+  .completion-sub { color: var(--muted); font-size: 16px; margin-bottom: 40px; }
+  .completion-stats { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px; }
+  .stat-box { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px 28px; min-width: 120px; }
+  .stat-num { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 36px; }
+  .stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .stat-green .stat-num { color: var(--green); } .stat-yellow .stat-num { color: var(--yellow); } .stat-red .stat-num { color: var(--red); }
+  .btn-restart { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; font-weight: 600; }
+  .btn-restart:hover { opacity: 0.9; transform: translateY(-1px); }
+  .diff-tag { position: absolute; top: 20px; right: 20px; font-family: 'DM Mono', monospace; font-size: 10px; padding: 4px 10px; border-radius: 4px; letter-spacing: 0.08em; }
+  .diff-tag.easy { background: rgba(16,185,129,0.15); color: var(--green); }
+  .diff-tag.medium { background: rgba(245,158,11,0.15); color: var(--yellow); }
+  .diff-tag.hard { background: rgba(239,68,68,0.15); color: #fca5a5; }
+  .deck-info { display: flex; gap: 20px; margin-bottom: 28px; flex-wrap: wrap; }
+  .deck-stat { display: flex; flex-direction: column; gap: 2px; }
+  .deck-stat-num { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 20px; color: white; }
+  .deck-stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; font-family: 'DM Mono', monospace; }
+  .divider { width: 1px; background: var(--border); height: 36px; }
+  @keyframes cardIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .card-area { animation: cardIn 0.3s ease; }
+  .flip-hint { text-align: center; font-size: 12px; color: var(--muted); margin-bottom: 16px; font-family: 'DM Mono', monospace; letter-spacing: 0.05em; }
+  #main-view { display: block; }
+"""
+
+BACK_LINK = ('<a href="index.html" style="font-size:0.82rem;color:var(--muted);text-decoration:none;'
+             'border:1px solid rgba(255,255,255,0.1);padding:0.4rem 0.9rem;border-radius:8px;'
+             "transition:all 0.2s;font-family:'DM Sans',sans-serif;\" "
+             "onmouseover=\"this.style.borderColor='var(--accent)';this.style.color='var(--accent)'\" "
+             "onmouseout=\"this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='var(--muted)'\">← Volver a temas</a>")
+
+
+def deck_html(deck):
+    filters = deck["filters"]
+    cards = deck["cards"]
+    tema = deck["slug"]
+    fbtns = ['<button class="filter-btn active" onclick="filterCards(\'all\', this)">Todas</button>']
+    for f in filters:
+        fbtns.append('<button class="filter-btn" onclick="filterCards(\'%s\', this)">%s</button>' % (f["key"], f["label"]))
+    filter_html = "\n      ".join(fbtns)
+    cards_json = json.dumps(cards, ensure_ascii=False, indent=2)
+    n = len(cards)
+    return f"""<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Melbako · {deck['title']}</title>
+{FONTS}
+<style>{STYLE}</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo">
+      <div class="logo-mark">MB</div>
+      <div class="logo-text">
+        Melbako
+        <span>Bioquímica · Medicina</span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      {BACK_LINK}
+      <div class="topic-badge">{deck['badge']}</div>
+    </div>
+  </header>
+
+  <div id="main-view">
+    <div class="deck-info">
+      <div class="deck-stat"><div class="deck-stat-num" id="total-count">{n}</div><div class="deck-stat-label">Flashcards</div></div>
+      <div class="divider"></div>
+      <div class="deck-stat"><div class="deck-stat-num">{len(filters)}</div><div class="deck-stat-label">Temas</div></div>
+      <div class="divider"></div>
+      <div class="deck-stat"><div class="deck-stat-num" id="remaining-count">{n}</div><div class="deck-stat-label">Restantes</div></div>
+    </div>
+
+    <div class="filter-bar">
+      {filter_html}
+    </div>
+
+    <div class="progress-section">
+      <div class="progress-header">
+        <div class="progress-label">PROGRESO DE REPASO</div>
+        <div class="progress-count"><span id="current-num">1</span> <span>/ <span id="total-num">{n}</span></span></div>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width: {100.0/n if n else 0:.1f}%"></div></div>
+      <div class="score-row">
+        <div class="score-pill"><div class="dot green"></div><span id="score-good">0</span> sabía</div>
+        <div class="score-pill"><div class="dot yellow"></div><span id="score-ok">0</span> más o menos</div>
+        <div class="score-pill"><div class="dot red"></div><span id="score-bad">0</span> no sabía</div>
+      </div>
+    </div>
+
+    <div class="flip-hint">↓ Hacé click para ver la respuesta</div>
+    <div class="card-area" onclick="flipCard()" id="card-area">
+      <div class="card" id="card">
+        <div class="card-face card-front active" id="card-front">
+          <div class="card-category" id="card-category"></div>
+          <div class="diff-tag" id="diff-tag"></div>
+          <div class="card-question" id="card-question"></div>
+          <div class="card-hint">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            Click para revelar
+          </div>
+        </div>
+        <div class="card-face card-back" id="card-back">
+          <div class="card-category">Respuesta</div>
+          <div class="card-answer" id="card-answer"></div>
+          <div class="clinical-note" id="clinical-note" style="display:none">
+            <span class="clinical-note-icon">⚕️</span>
+            <span id="clinical-text"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-row">
+      <button class="btn btn-ghost" onclick="flipCard()" id="flip-btn">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
+        Ver respuesta
+      </button>
+      <div class="answer-actions" id="answer-actions">
+        <button class="btn btn-bad" onclick="markCard('bad')">😅 No sabía</button>
+        <button class="btn btn-ok" onclick="markCard('ok')">🤔 Más o menos</button>
+        <button class="btn btn-good" onclick="markCard('good')">✅ Lo sabía</button>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="nav-btn" onclick="prevCard()" id="prev-btn">←</button>
+      <div class="nav-index" id="nav-index">1 / {n}</div>
+      <button class="nav-btn" onclick="nextCard()" id="next-btn">→</button>
+    </div>
+
+    <button class="shuffle-btn" onclick="shuffleCards()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/>
+        <polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/>
+      </svg>
+      Mezclar cartas
+    </button>
+  </div>
+
+  <div class="completion" id="completion-screen">
+    <div class="completion-emoji" id="result-emoji">🎉</div>
+    <div class="completion-title">¡Mazo completado!</div>
+    <div class="completion-sub" id="result-mensaje">Terminaste de repasar todas las flashcards</div>
+    <div class="completion-stats">
+      <div class="stat-box stat-green"><div class="stat-num" id="final-good">0</div><div class="stat-label">Lo sabía</div></div>
+      <div class="stat-box stat-yellow"><div class="stat-num" id="final-ok">0</div><div class="stat-label">Más o menos</div></div>
+      <div class="stat-box stat-red"><div class="stat-num" id="final-bad">0</div><div class="stat-label">No sabía</div></div>
+    </div>
+    <div id="comparacion" style="display:none;margin:16px 0;padding:14px 20px;background:rgba(255,255,255,0.04);border-radius:12px;font-size:0.85rem;color:#888;text-align:center;">
+      Intento anterior: <span id="pct-anterior" style="color:#ccc;font-weight:600;"></span> → Este intento: <span id="pct-actual" style="color:#00d4ff;font-weight:600;"></span>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:8px;">
+      <button class="btn btn-restart" onclick="restartDeck()">↺ Reintentar</button>
+      <a href="index.html" style="display:inline-flex;align-items:center;padding:0 20px;height:44px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);color:#aaa;font-family:'DM Sans',sans-serif;font-size:0.9rem;text-decoration:none;">← Volver a temas</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const allCards = {cards_json};
+const TEMA = "{tema}";
+const SCRIPT_URL = "{SCRIPT_URL}";
+let deck = [...allCards];
+let currentIndex = 0, isFlipped = false;
+let scores = {{ good: 0, ok: 0, bad: 0 }};
+
+function renderCard() {{
+  const card = deck[currentIndex];
+  if (!card) return;
+  const area = document.getElementById('card-area');
+  isFlipped = false;
+  document.getElementById('card-front').classList.add('active');
+  document.getElementById('card-back').classList.remove('active');
+  document.getElementById('answer-actions').classList.remove('visible');
+  document.getElementById('flip-btn').style.display = '';
+  document.getElementById('card-category').textContent = card.categoryLabel;
+  document.getElementById('card-question').textContent = card.question;
+  document.getElementById('card-answer').innerHTML = card.answer;
+  const diffTag = document.getElementById('diff-tag');
+  const diffMap = {{ easy: ['fácil', 'easy'], medium: ['medio', 'medium'], hard: ['difícil', 'hard'] }};
+  const [label, cls] = diffMap[card.difficulty] || ['', 'easy'];
+  diffTag.textContent = label; diffTag.className = 'diff-tag ' + cls;
+  const clinicalNote = document.getElementById('clinical-note');
+  if (card.clinical) {{ clinicalNote.style.display = 'flex'; document.getElementById('clinical-text').textContent = card.clinical; }}
+  else {{ clinicalNote.style.display = 'none'; }}
+  const total = deck.length;
+  document.getElementById('current-num').textContent = currentIndex + 1;
+  document.getElementById('total-num').textContent = total;
+  document.getElementById('nav-index').textContent = `${{currentIndex + 1}} / ${{total}}`;
+  document.getElementById('progress-fill').style.width = ((currentIndex + 1) / total * 100) + '%';
+  document.getElementById('remaining-count').textContent = total - currentIndex;
+  document.getElementById('prev-btn').disabled = currentIndex === 0;
+  document.getElementById('next-btn').disabled = currentIndex === total - 1;
+  area.style.animation = 'none';
+  requestAnimationFrame(() => {{ area.style.animation = 'cardIn 0.3s ease'; }});
+}}
+function flipCard() {{
+  if (!isFlipped) {{
+    document.getElementById('card-front').classList.remove('active');
+    document.getElementById('card-back').classList.add('active');
+    document.getElementById('answer-actions').classList.add('visible');
+    document.getElementById('flip-btn').style.display = 'none';
+    isFlipped = true;
+  }}
+}}
+function markCard(result) {{
+  scores[result]++;
+  document.getElementById('score-good').textContent = scores.good;
+  document.getElementById('score-ok').textContent = scores.ok;
+  document.getElementById('score-bad').textContent = scores.bad;
+  if (currentIndex < deck.length - 1) {{ currentIndex++; renderCard(); }} else {{ showCompletion(); }}
+}}
+function nextCard() {{ if (currentIndex < deck.length - 1) {{ currentIndex++; renderCard(); }} }}
+function prevCard() {{ if (currentIndex > 0) {{ currentIndex--; renderCard(); }} }}
+function filterCards(cat, btn) {{
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  deck = (cat === 'all') ? [...allCards] : allCards.filter(c => c.category === cat);
+  currentIndex = 0; scores = {{ good: 0, ok: 0, bad: 0 }};
+  document.getElementById('score-good').textContent = 0;
+  document.getElementById('score-ok').textContent = 0;
+  document.getElementById('score-bad').textContent = 0;
+  document.getElementById('total-count').textContent = deck.length;
+  document.getElementById('remaining-count').textContent = deck.length;
+  document.getElementById('completion-screen').classList.remove('visible');
+  document.getElementById('main-view').style.display = 'block';
+  renderCard();
+}}
+function shuffleCards() {{
+  for (let i = deck.length - 1; i > 0; i--) {{ const j = Math.floor(Math.random() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; }}
+  currentIndex = 0; renderCard();
+}}
+function showCompletion() {{
+  document.getElementById('main-view').style.display = 'none';
+  document.getElementById('completion-screen').classList.add('visible');
+  document.getElementById('final-good').textContent = scores.good;
+  document.getElementById('final-ok').textContent = scores.ok;
+  document.getElementById('final-bad').textContent = scores.bad;
+  const mail = localStorage.getItem('melbako_user');
+  if (mail) {{
+    fetch(SCRIPT_URL, {{
+      method: 'POST',
+      body: JSON.stringify({{ accion: 'progreso', mail: mail, tema: TEMA, good: scores.good, ok: scores.ok, bad: scores.bad }})
+    }})
+    .then(r => r.json())
+    .then(data => {{
+      if (data.ok) {{
+        document.getElementById('result-emoji').textContent = data.emoji;
+        document.getElementById('result-mensaje').textContent = data.mensaje;
+        if (data.anterior) {{
+          document.getElementById('comparacion').style.display = 'block';
+          document.getElementById('pct-anterior').textContent = data.anterior.pct + '%';
+          document.getElementById('pct-actual').textContent = data.pct + '%';
+        }}
+      }}
+    }})
+    .catch(() => {{}});
+  }}
+}}
+function restartDeck() {{
+  deck = [...allCards]; currentIndex = 0; scores = {{ good: 0, ok: 0, bad: 0 }};
+  document.getElementById('score-good').textContent = 0;
+  document.getElementById('score-ok').textContent = 0;
+  document.getElementById('score-bad').textContent = 0;
+  document.getElementById('completion-screen').classList.remove('visible');
+  document.getElementById('main-view').style.display = 'block';
+  renderCard();
+}}
+renderCard();
+</script>
+</body>
+</html>
+"""
+
+
+def main():
+    for path in sorted(glob.glob(os.path.join(DECKS_DIR, "*.json"))):
+        with open(path, encoding="utf-8") as fh:
+            d = json.load(fh)
+        fname = "melbako-flashcards-%s.html" % d["slug"]
+        with open(os.path.join(REPO, fname), "w", encoding="utf-8") as fh:
+            fh.write(deck_html(d))
+        print("  OK:", fname, "(%d cards, %d temas)" % (len(d["cards"]), len(d["filters"])))
+
+
+if __name__ == "__main__":
+    main()
