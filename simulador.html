@@ -112,7 +112,7 @@
       <button class="btn btn-primary" onclick="entregar()">Entregar parcial →</button>
       <button class="btn btn-ghost" onclick="goHome()">Cancelar</button>
     </div>
-    <p class="lead" style="margin-top:14px;font-size:13px;">Tip: las preguntas de Verdadero/Falso, opción múltiple y asociación dan <b>puntaje parcial</b> (sumás por cada ítem correcto).</p>
+    <p class="lead" style="margin-top:14px;font-size:13px;">Tip: V/F y asociación dan <b>puntaje parcial</b> (sumás por cada ítem correcto). En las de <b>opción múltiple</b> las correctas suman y las incorrectas restan (en blanco = 0), así que no conviene tildar al azar.</p>
   </div>
 
   <!-- RESULTS -->
@@ -200,8 +200,9 @@ function updateAnswered(){document.getElementById('answered').textContent=actual
 function corregir(q,resp){
   const pts=q.puntos;
   if(q.tipo==='single')return [resp===q.correcta?pts:0,pts];
-  if(q.tipo==='multi'){const cor=new Set(q.correctas),el=new Set(resp||[]),n=q.opciones.length;
-    let bien=0;for(let i=0;i<n;i++)if(cor.has(i)===el.has(i))bien++;return [Math.round(pts*bien/n*100)/100,pts];}
+  if(q.tipo==='multi'){const cor=new Set(q.correctas),el=new Set(resp||[]);
+    let ac=0,er=0;el.forEach(i=>{cor.has(i)?ac++:er++;});
+    const sc=Math.max(0,ac-er)/cor.size;return [Math.round(pts*sc*100)/100,pts];}
   if(q.tipo==='vf'){const n=q.premisas.length;let ok=0;q.premisas.forEach((p,i)=>{if((resp||[])[i]===p.v)ok++;});return [Math.round(pts*ok/n*100)/100,pts];}
   if(q.tipo==='match'){const n=q.filas.length;let ok=0;q.filas.forEach((f,i)=>{if((resp||[])[i]===f.correcta)ok++;});return [Math.round(pts*ok/n*100)/100,pts];}
   return [0,pts];
