@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Melbako · Enzimas</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<script>(function(){try{if(localStorage.getItem("melbako_theme")==="light")document.documentElement.setAttribute("data-theme","light");}catch(e){}})();</script>
 <style>
   :root {
     --bg: #0a0e1a; --surface: #111827; --surface2: #1a2235; --border: #1e3a5f;
@@ -97,6 +98,14 @@
   .card-area { animation: cardIn 0.3s ease; }
   .flip-hint { text-align: center; font-size: 12px; color: var(--muted); margin-bottom: 16px; font-family: 'DM Mono', monospace; letter-spacing: 0.05em; }
   #main-view { display: block; }
+  /* ---- Tema claro ---- */
+  .theme-fab { position: fixed; bottom: 18px; right: 18px; width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 20px; cursor: pointer; z-index: 60; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(0,0,0,.25); transition: transform .15s; }
+  .theme-fab:hover { transform: scale(1.08); }
+  :root[data-theme="light"] { --bg:#eef2f7; --surface:#ffffff; --surface2:#e2e8f0; --border:#cbd5e1; --accent:#0891b2; --text:#1e293b; --muted:#64748b; --green:#059669; --card-front:#f0fbff; --card-back:#f0fdf4; }
+  :root[data-theme="light"] .logo-text, :root[data-theme="light"] .card-question, :root[data-theme="light"] .deck-stat-num, :root[data-theme="light"] .progress-count, :root[data-theme="light"] .completion-title { color:#0f172a; }
+  :root[data-theme="light"] .card-answer { color:#166534; }
+  :root[data-theme="light"] .clinical-note { color:#92660a; background:rgba(245,158,11,.12); border-color:rgba(245,158,11,.35); }
+  :root[data-theme="light"] body::before { background-image: linear-gradient(rgba(8,145,178,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(8,145,178,.05) 1px, transparent 1px); }
 </style>
 </head>
 <body>
@@ -616,6 +625,12 @@ function restartDeck() {
   renderCard();
 }
 renderCard();
+</script>
+<button class="theme-fab" id="theme-fab" onclick="toggleTheme()" title="Cambiar tema" aria-label="Cambiar tema">☀️</button>
+<script>
+function updateThemeBtn(){document.getElementById('theme-fab').textContent=document.documentElement.getAttribute('data-theme')==='light'?'🌙':'☀️';}
+function toggleTheme(){var d=document.documentElement,l=d.getAttribute('data-theme')==='light';if(l)d.removeAttribute('data-theme');else d.setAttribute('data-theme','light');try{localStorage.setItem('melbako_theme',l?'dark':'light');}catch(e){}updateThemeBtn();}
+updateThemeBtn();
 </script>
 </body>
 </html>

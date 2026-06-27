@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Melbako · Flashcards</title>
+  <script>(function(){try{if(localStorage.getItem("melbako_theme")==="light")document.documentElement.setAttribute("data-theme","light");}catch(e){}})();</script>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -389,6 +390,12 @@
     }
 
     #auth-screen, #cat-screen, #dashboard { animation: fadeIn 0.4s ease both; }
+  
+    /* ---- Tema claro ---- */
+    .theme-fab{position:fixed;bottom:18px;right:18px;width:46px;height:46px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:20px;cursor:pointer;z-index:60;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.25);transition:transform .15s;}
+    .theme-fab:hover{transform:scale(1.08);}
+    :root[data-theme="light"]{--bg:#eef2f7;--surface:#ffffff;--border:#cbd5e1;--cyan:#0891b2;--text:#1e293b;--muted:#475569;}
+    :root[data-theme="light"] body::before{background:radial-gradient(ellipse 60% 50% at 20% 20%,rgba(8,145,178,.06) 0%,transparent 70%),radial-gradient(ellipse 50% 60% at 80% 80%,rgba(155,93,229,.06) 0%,transparent 70%);}
   </style>
 </head>
 <body>
@@ -479,7 +486,7 @@
       <div style="display:flex;align-items:center;gap:1rem;">
         <div style="font-size:2rem;">📝</div>
         <div style="flex:1;">
-          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;color:#fff;">Simulador de Parciales</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;color:var(--text);">Simulador de Parciales</div>
           <div style="font-size:.85rem;color:var(--muted);margin-top:2px;">Rendí un parcial completo con corrección automática y nota ficticia</div>
         </div>
         <div style="color:var(--cyan);font-size:1.3rem;">→</div>
@@ -664,5 +671,11 @@
     const savedUser = localStorage.getItem('melbako_user');
     if (savedUser) mostrarCategorias(savedUser);
   </script>
+<button class="theme-fab" id="theme-fab" onclick="toggleTheme()" title="Cambiar tema" aria-label="Cambiar tema">☀️</button>
+<script>
+function updateThemeBtn(){document.getElementById('theme-fab').textContent=document.documentElement.getAttribute('data-theme')==='light'?'🌙':'☀️';}
+function toggleTheme(){var d=document.documentElement,l=d.getAttribute('data-theme')==='light';if(l)d.removeAttribute('data-theme');else d.setAttribute('data-theme','light');try{localStorage.setItem('melbako_theme',l?'dark':'light');}catch(e){}updateThemeBtn();}
+updateThemeBtn();
+</script>
 </body>
 </html>
