@@ -454,10 +454,9 @@
         <div class="cat-icon">📗</div>
         <div class="cat-name">Primer Parcial</div>
       </div>
-      <div class="cat-card disabled">
+      <div class="cat-card" onclick="mostrarDashboard('segundo')">
         <div class="cat-icon">📘</div>
         <div class="cat-name">Segundo Parcial</div>
-        <div class="cat-soon">Próximamente</div>
       </div>
       <div class="cat-card disabled">
         <div class="cat-icon">📕</div>
@@ -482,18 +481,22 @@
     <div class="dash-title" id="dash-title">Primer Parcial</div>
     <div class="dash-subtitle">Seleccioná un tema para repasar</div>
 
-    <a href="simulador.html" style="display:block;text-decoration:none;background:linear-gradient(135deg,rgba(0,229,255,0.12),rgba(155,93,229,0.12));border:1px solid rgba(0,229,255,0.3);border-radius:14px;padding:1.3rem 1.5rem;margin-bottom:1.8rem;transition:all .2s;" onmouseover="this.style.transform='translateY(-3px)';this.style.borderColor='var(--cyan)'" onmouseout="this.style.transform='';this.style.borderColor='rgba(0,229,255,0.3)'">
+    <a href="simulador.html" id="sim-link" style="display:block;text-decoration:none;background:linear-gradient(135deg,rgba(0,229,255,0.12),rgba(155,93,229,0.12));border:1px solid rgba(0,229,255,0.3);border-radius:14px;padding:1.3rem 1.5rem;margin-bottom:1.8rem;transition:all .2s;" onmouseover="this.style.transform='translateY(-3px)';this.style.borderColor='var(--cyan)'" onmouseout="this.style.transform='';this.style.borderColor='rgba(0,229,255,0.3)'">
       <div style="display:flex;align-items:center;gap:1rem;">
         <div style="font-size:2rem;">📝</div>
         <div style="flex:1;">
           <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;color:var(--text);">Simulador de Parciales</div>
-          <div style="font-size:.85rem;color:var(--muted);margin-top:2px;">Rendí un parcial completo con corrección automática y nota ficticia</div>
+          <div style="font-size:.85rem;color:var(--muted);margin-top:2px;" id="sim-desc">Rendí un parcial completo con corrección automática y nota ficticia</div>
         </div>
         <div style="color:var(--cyan);font-size:1.3rem;">→</div>
       </div>
     </a>
 
-    <div class="flashcards-grid">
+    <div id="fc-grid-segundo" style="display:none;text-align:center;padding:2.5rem 1rem;color:var(--muted);font-size:.9rem;">
+      Todavía no subimos flashcards del Segundo Parcial — pero ya podés rendir el simulador de arriba. 📘
+    </div>
+
+    <div class="flashcards-grid" id="fc-grid-primer">
       <div class="fc-section-title">Fundamentos</div>
 
       <a class="fc-card" href="melbako-flashcards-quimica.html">
@@ -646,8 +649,16 @@
       document.getElementById('cat-screen').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
       document.getElementById('user-email').textContent = localStorage.getItem('melbako_user');
-      const titles = { primer: 'Primer Parcial 📗' };
+      const titles = { primer: 'Primer Parcial 📗', segundo: 'Segundo Parcial 📘' };
       document.getElementById('dash-title').textContent = titles[categoria] || 'Flashcards';
+
+      const esSegundo = categoria === 'segundo';
+      document.getElementById('sim-link').href = esSegundo ? 'simulador2.html' : 'simulador.html';
+      document.getElementById('sim-desc').textContent = esSegundo
+        ? '15 modelos de 12 preguntas: killers + multiple choice, con nota ficticia'
+        : 'Rendí un parcial completo con corrección automática y nota ficticia';
+      document.getElementById('fc-grid-primer').style.display = esSegundo ? 'none' : 'grid';
+      document.getElementById('fc-grid-segundo').style.display = esSegundo ? 'block' : 'none';
     }
 
     function volverCategorias() {
